@@ -32,6 +32,10 @@
 		"db:generate": {
 			"cache": false,
 			"persistent": true
+		},
+		"typegen": {
+			"cache": false,
+			"persistent": true
 		}
 	}
 }
