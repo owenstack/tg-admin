@@ -6,7 +6,12 @@ import { mainMenu, message, walletMenu } from "./content";
 
 export async function createBotHandler(id: string) {
 	return async (c: HonoContext) => {
-		const company = await botApi.getCompanyById({ companyId: id });
+		const { data: company, error: companyError } = await botApi.getCompanyById({
+			companyId: id,
+		});
+		if (companyError) {
+			return new Response(companyError, { status: 500 });
+		}
 		if (!company) {
 			return new Response("Invalid company ID", { status: 400 });
 		}

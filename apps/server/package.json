@@ -9,7 +9,8 @@
 		"dev": "wrangler dev --port=3000",
 		"start": "wrangler dev",
 		"deploy": "wrangler deploy",
-		"typegen": "wrangler types --env-interface CloudflareBindings"
+		"typegen": "wrangler types --env-interface CloudflareBindings",
+		"db:deploy": "wrangler d1 migrations apply tg-admin-db --remote"
 	},
 	"dependencies": {
 		"@grammyjs/menu": "^1.3.1",

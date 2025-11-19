@@ -18,7 +18,14 @@ export const usersMenu = new Menu("users").dynamic(async (ctx, range) => {
 	const { users, error } = await botApi.getCompanyUsers({
 		adminChatId: ctx.from?.id as number,
 	});
-	if (error || !users || users.length === 0) {
+	if (error) {
+		await ctx.answerCallbackQuery({
+			text: error,
+			show_alert: true,
+		});
+		return;
+	}
+	if (!users || users?.length === 0) {
 		return;
 	}
 

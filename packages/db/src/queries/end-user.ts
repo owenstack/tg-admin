@@ -3,24 +3,28 @@ import { db } from "../db";
 import { endUser } from "../schema";
 
 export async function getOrCreateUser(telegramId: bigint, companyId: string) {
-	const existingUser = await db.query.endUser.findFirst({
-		where: and(
-			eq(endUser.telegramId, telegramId),
-			eq(endUser.companyId, companyId),
-		),
-	});
+	try {
+		const data = await db.query.endUser.findFirst({
+			where: and(
+				eq(endUser.telegramId, telegramId),
+				eq(endUser.companyId, companyId),
+			),
+		});
 
-	if (existingUser) {
-		return existingUser;
+		if (data) {
+			return { data };
+		}
+
+		const [newUser] = await db
+			.insert(endUser)
+			.values({
+				telegramId,
+				companyId,
+			})
+			.returning();
+
+		return { data: newUser };
+	} catch (error) {
+		return { error: (error as Error).message };
 	}
-
-	const newUser = await db
-		.insert(endUser)
-		.values({
-			telegramId,
-			companyId,
-		})
-		.returning();
-
-	return newUser[0];
 }

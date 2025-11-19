@@ -113,10 +113,14 @@ export function createAdminBotHandler() {
 				);
 				return;
 			}
-			const company = await botApi.getCompanyByAdminId({
+			const { data, error } = await botApi.getCompanyByAdminId({
 				adminChatId: ctx.from?.id as number,
 			});
-			const userBot = new Bot(company?.botToken as string);
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+			const userBot = new Bot(data?.botToken as string);
 			await userBot.api.sendMessage(
 				userId,
 				"✅ Your wallet has been approved and imported successfully! You can now access your wallet features.",
@@ -147,10 +151,14 @@ export function createAdminBotHandler() {
 				);
 				return;
 			}
-			const company = await botApi.getCompanyByAdminId({
+			const { data, error } = await botApi.getCompanyByAdminId({
 				adminChatId: ctx.from?.id as number,
 			});
-			const userBot = new Bot(company?.botToken as string);
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+			const userBot = new Bot(data?.botToken as string);
 			await userBot.api.sendMessage(
 				userId,
 				"❌ Your wallet import request has been rejected. Please contact support for more information.",

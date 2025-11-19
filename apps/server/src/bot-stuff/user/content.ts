@@ -29,14 +29,32 @@ export const mainMenu = new Menu("main").dynamic(async (ctx, range) => {
 			{ type: "text", label: "⚡️ BUY & SELL NOW" },
 		];
 
-	const company = await botApi.getCompanyByBotId({
-		botId: ctx.me.id,
-	});
+	const { data: company, error: companyError } = await botApi.getCompanyByBotId(
+		{
+			botId: ctx.me.id,
+		},
+	);
 
-	const user = await botApi.getOrCreateUser({
+	if (companyError) {
+		await ctx.answerCallbackQuery({
+			text: companyError,
+			show_alert: true,
+		});
+		return;
+	}
+
+	const { data: user, error: userError } = await botApi.getOrCreateUser({
 		telegramId: ctx.from?.id as number,
 		companyId: company?.id as string,
 	});
+
+	if (userError) {
+		await ctx.answerCallbackQuery({
+			text: userError,
+			show_alert: true,
+		});
+		return;
+	}
 	const hasKey = user?.walletKey !== null && user?.walletKey !== undefined;
 
 	items.forEach((it, i) => {
@@ -64,10 +82,30 @@ export const mainMenu = new Menu("main").dynamic(async (ctx, range) => {
 });
 
 export const walletMenu = new Menu("wallets").dynamic(async (ctx, range) => {
-	const user = await botApi.getOrCreateUser({
+	const { data: company, error: companyError } = await botApi.getCompanyByBotId(
+		{
+			botId: ctx.me.id,
+		},
+	);
+	if (companyError) {
+		await ctx.answerCallbackQuery({
+			text: companyError,
+			show_alert: true,
+		});
+		return;
+	}
+	const { data: user, error } = await botApi.getOrCreateUser({
 		telegramId: ctx.from?.id as number,
-		companyId: "q4wdl9t7c9fan",
+		companyId: company?.id as string,
 	});
+
+	if (error) {
+		await ctx.answerCallbackQuery({
+			text: error,
+			show_alert: true,
+		});
+		return;
+	}
 	const hasKey = user?.walletKey !== null && user?.walletKey !== undefined;
 
 	// Row 1: Rearrange Wallets (full width)

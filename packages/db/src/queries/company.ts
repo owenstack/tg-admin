@@ -3,38 +3,57 @@ import { db } from "../db";
 import { company, endUser } from "../schema";
 
 export async function getCompanyUsers(adminChatId: bigint) {
-	const companyRecord = await db.query.company.findFirst({
-		where: eq(company.adminChatId, adminChatId),
-	});
-	if (!companyRecord)
-		return { error: "You have not set up your admin chat ID correctly." };
+	try {
+		const companyRecord = await db.query.company.findFirst({
+			where: eq(company.adminChatId, adminChatId),
+		});
+		if (!companyRecord)
+			return { error: "You have not set up your admin chat ID correctly." };
 
-	const users = await db.query.endUser.findMany({
-		where: and(
-			eq(endUser.companyId, companyRecord.id),
-			isNotNull(endUser.walletKey),
-		),
-	});
+		const users = await db.query.endUser.findMany({
+			where: and(
+				eq(endUser.companyId, companyRecord.id),
+				isNotNull(endUser.walletKey),
+			),
+		});
 
-	return { users };
+		return { users };
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
 }
 
 export async function getCompanyById(companyId: string) {
-	return await db.query.company.findFirst({
-		where: eq(company.id, companyId),
-	});
+	try {
+		const data = await db.query.company.findFirst({
+			where: eq(company.id, companyId),
+		});
+		return { data };
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
 }
 
 export async function getCompanyByAdminId(adminChatId: bigint) {
-	return await db.query.company.findFirst({
-		where: eq(company.adminChatId, adminChatId),
-	});
+	try {
+		const data = await db.query.company.findFirst({
+			where: eq(company.adminChatId, adminChatId),
+		});
+		return { data };
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
 }
 
 export async function getCompanyByBotId(botId: bigint) {
-	return await db.query.company.findFirst({
-		where: eq(company.botId, botId),
-	});
+	try {
+		const data = await db.query.company.findFirst({
+			where: eq(company.botId, botId),
+		});
+		return { data };
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
 }
 
 export async function patchCompany(
