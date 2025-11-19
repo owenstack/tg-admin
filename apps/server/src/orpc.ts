@@ -1,15 +1,16 @@
-import type { AppRouterClient } from "@tg-admin/api/routers/index";
+import { env } from "cloudflare:workers";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
+import type { AppRouterClient } from "@tg-admin/api/routers/index";
 
 export const link = new RPCLink({
-	url: "http://localhost:3000/rpc",
+	url: `${env.BETTER_AUTH_URL}/rpc`,
 	fetch(url, options) {
 		return fetch(url, {
 			...options,
 			headers: {
 				...(options as RequestInit).headers,
-				"x-telegram-bot-token": process.env.TELEGRAM_BOT_TOKEN || "",
+				"x-telegram-bot-token": env.TELEGRAM_BOT_TOKEN,
 			},
 		});
 	},

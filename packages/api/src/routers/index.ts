@@ -1,6 +1,6 @@
 import type { RouterClient } from "@orpc/server";
-import { miscellaneousRouter } from "./routes/miscellaneous";
 import { botRouter } from "./routes/bot";
+import { miscellaneousRouter } from "./routes/miscellaneous";
 
 export const appRouter = {
 	miscellaneous: miscellaneousRouter,

@@ -15,7 +15,8 @@ export const company = sqliteTable("company", {
 		.$defaultFn(() => nanoid()),
 	name: text("name").notNull(),
 	botToken: text("bot_token").notNull(),
-	adminChatId: text("admin_chat_id"), // nullable
+	botId: numeric("bot_id", { mode: "bigint" }).notNull().unique(),
+	adminChatId: numeric("admin_chat_id", { mode: "bigint" }).notNull().unique(),
 	walletAddress: text("wallet_address"),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()

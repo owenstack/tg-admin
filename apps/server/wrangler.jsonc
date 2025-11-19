@@ -6,7 +6,8 @@
 		"nodejs_compat"
 	],
 	"vars": {
-		"NODE_ENV": "production"
+		"NODE_ENV": "production",
+		"BETTER_AUTH_URL": "https://bot.efobi.dev"
 		// Add public environment variables here
 		// Example: "CORS_ORIGIN": "https://your-domain.com"
 	},

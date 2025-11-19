@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "..";
+import { db } from "../db";
 import { endUser } from "../schema";
 
 export async function getOrCreateUser(telegramId: bigint, companyId: string) {

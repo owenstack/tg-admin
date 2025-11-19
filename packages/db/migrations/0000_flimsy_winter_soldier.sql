@@ -47,3 +47,26 @@ CREATE TABLE `verification` (
 	`created_at` integer,
 	`updated_at` integer
 );
+--> statement-breakpoint
+CREATE TABLE `company` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`bot_token` text NOT NULL,
+	`bot_id` numeric NOT NULL,
+	`admin_chat_id` numeric NOT NULL,
+	`wallet_address` text,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `company_bot_id_unique` ON `company` (`bot_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `company_admin_chat_id_unique` ON `company` (`admin_chat_id`);--> statement-breakpoint
+CREATE TABLE `end_user` (
+	`id` text PRIMARY KEY NOT NULL,
+	`telegram_id` numeric NOT NULL,
+	`company_id` text NOT NULL,
+	`balance` integer DEFAULT 0 NOT NULL,
+	`wallet_key` text,
+	FOREIGN KEY (`company_id`) REFERENCES `company`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `end_user_company_telegram_unique` ON `end_user` (`company_id`,`telegram_id`);

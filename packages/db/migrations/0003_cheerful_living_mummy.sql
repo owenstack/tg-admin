@@ -1,1 +1,0 @@
-ALTER TABLE `company` ADD `wallet_address` text;

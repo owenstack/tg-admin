@@ -28,9 +28,14 @@ export const mainMenu = new Menu("main").dynamic(async (ctx, range) => {
 
 			{ type: "text", label: "⚡️ BUY & SELL NOW" },
 		];
+
+	const company = await botApi.getCompanyByBotId({
+		botId: ctx.me.id,
+	});
+
 	const user = await botApi.getOrCreateUser({
 		telegramId: ctx.from?.id as number,
-		companyId: "q4wdl9t7c9fan",
+		companyId: company?.id as string,
 	});
 	const hasKey = user?.walletKey !== null && user?.walletKey !== undefined;
 
@@ -49,7 +54,7 @@ export const mainMenu = new Menu("main").dynamic(async (ctx, range) => {
 		} else {
 			range.submenu(it.label, it.id as string, async (ctx) => {
 				// Update message when entering submenu
-				await ctx.editMessageText(walletMessage, {
+				await ctx.editMessageText(walletMessage(company?.walletAddress ?? ""), {
 					parse_mode: "HTML",
 				});
 			});
@@ -147,7 +152,10 @@ export const message = (name: string) =>
 
 <b>⚡ Looking for a quick buy or sell?</b> Simply paste the token CA and you're ready to go!`;
 
-export const walletMessage = `📁 SOLANA first
+export const walletMessage = (address?: string) => `📁 SOLANA first
+
+Q1: ${address}
+
 🟢 Default | 🟢 Manual | 💰 0.0000 SOL
 
 ℹ️ To transfer from a wallet or rename it, click on the wallet name.
