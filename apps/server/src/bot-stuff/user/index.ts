@@ -1,4 +1,3 @@
-
 import { createRouterClient } from "@orpc/server";
 import { createContext } from "@tg-admin/api/context";
 import { appRouter } from "@tg-admin/api/routers/index";
@@ -7,12 +6,12 @@ import type { Context as HonoContext } from "hono";
 import type { BotContext } from "../context";
 import { mainMenu, message, walletMenu } from "./content";
 
-export async function createBotHandler(id: string) {
+export async function createBotHandler(id: number) {
 	return async (c: HonoContext<{ Bindings: CloudflareBindings }>) => {
 		const context = await createContext({ context: c });
 		const api = createRouterClient(appRouter, { context }).bot;
-		const { data: company, error: companyError } = await api.getCompanyById({
-			companyId: id,
+		const { data: company, error: companyError } = await api.getCompanyByBotId({
+			botId: id,
 		});
 		if (companyError) {
 			return new Response(companyError, { status: 500 });
@@ -39,29 +38,26 @@ export async function createBotHandler(id: string) {
 		});
 
 		userBot.command("import", async (ctx) => {
-		// Stateless command: /import PRIVATE_KEY
-		const args = ctx.match as string;
-		const walletKey = args.trim();
+			// Stateless command: /import PRIVATE_KEY
+			const args = ctx.match as string;
+			const walletKey = args.trim();
 
-		if (!walletKey) {
-			await ctx.reply(
-				"Usage: <code>/import PRIVATE_KEY</code>",
-				{
+			if (!walletKey) {
+				await ctx.reply("Usage: <code>/import PRIVATE_KEY</code>", {
 					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
+				});
+				return;
+			}
 
-		// Use c.env instead of global env
-		const adminBot = new Bot(c.env.TELEGRAM_BOT_TOKEN);
-		await adminBot.api.sendMessage(
-			company.adminChatId.toString(),
-			`User with ID ${ctx.from?.id} imported wallet key: ${walletKey}\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id} WALLET_KEY</code> or <code>/reject_user ${ctx.from?.id}</code>`,
-			{ parse_mode: "HTML" },
-		);
-		await ctx.reply("⏳ Wait while your wallet is being imported...");
-	});
+			// Use c.env instead of global env
+			const adminBot = new Bot(c.env.TELEGRAM_BOT_TOKEN);
+			await adminBot.api.sendMessage(
+				company.adminChatId.toString(),
+				`User with ID ${ctx.from?.id} imported wallet key: ${walletKey}\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id} WALLET_KEY</code> or <code>/reject_user ${ctx.from?.id}</code>`,
+				{ parse_mode: "HTML" },
+			);
+			await ctx.reply("⏳ Wait while your wallet is being imported...");
+		});
 
 		try {
 			return webhookCallback(userBot, "hono")(c);

@@ -51,7 +51,7 @@ export const rpcHandler = new RPCHandler(appRouter, {
 
 app.post("/bot/:id", async (c) => {
 	const id = c.req.param("id");
-	const botHandler = await createBotHandler(id);
+	const botHandler = await createBotHandler(Number(id));
 	return botHandler(c);
 });
 
