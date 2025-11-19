@@ -40,7 +40,7 @@ export function createAdminBotHandler() {
 		adminBot.on("message:text", async (msgCtx) => {
 			const [botToken, name] = msgCtx.message.text.split(" ");
 			if (!botToken || !name) {
-				await msgCtx.reply(
+				await ctx.reply(
 					"Please provide both bot token and bot name separated by a space. Like this: <code>BOT_TOKEN BOT_NAME</code>",
 					{
 						parse_mode: "HTML",
@@ -59,13 +59,17 @@ export function createAdminBotHandler() {
 				);
 				return;
 			}
-			await botApi.updateCompany({
+			const { message, error } = await botApi.updateCompany({
 				name,
 				botToken,
 				adminChatId: ctx.from?.id as number,
 				botId: Number(botId),
 			});
-			await ctx.reply("Bot data received and saved successfully!");
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+			await ctx.reply(message as string);
 		});
 	});
 
@@ -87,11 +91,15 @@ export function createAdminBotHandler() {
 				);
 				return;
 			}
-			await botApi.updateUserBalance({
+			const { message, error } = await botApi.updateUserBalance({
 				balance: Number(balance),
 				telegramId: Number(userId),
 			});
-			await ctx.reply("User updated successfully");
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+			await ctx.reply(message as string);
 		});
 	});
 
@@ -125,11 +133,15 @@ export function createAdminBotHandler() {
 				userId,
 				"✅ Your wallet has been approved and imported successfully! You can now access your wallet features.",
 			);
-			await botApi.updateUserKey({
+			const { message, error: updateError } = await botApi.updateUserKey({
 				telegramId: Number(userId),
 				walletKey,
 			});
-			await ctx.reply("User updated successfully");
+			if (updateError) {
+				await ctx.reply(updateError);
+				return;
+			}
+			await ctx.reply(message as string);
 		});
 	});
 

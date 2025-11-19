@@ -44,5 +44,3 @@ export const usersMenu = new Menu("users").dynamic(async (ctx, range) => {
 		}
 	});
 });
-
-export const settingsMenu = new Menu("settings");

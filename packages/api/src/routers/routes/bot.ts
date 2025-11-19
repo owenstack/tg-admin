@@ -9,10 +9,10 @@ import {
 	updateUserKey,
 } from "@tg-admin/db";
 import { z } from "zod";
-import { botProcedure } from "../..";
+import { publicProcedure } from "../..";
 
 export const botRouter = {
-	getOrCreateUser: botProcedure
+	getOrCreateUser: publicProcedure
 		.input(
 			z.object({
 				telegramId: z.number(),
@@ -22,7 +22,7 @@ export const botRouter = {
 		.handler(async ({ input }) => {
 			return await getOrCreateUser(BigInt(input.telegramId), input.companyId);
 		}),
-	getCompanyUsers: botProcedure
+	getCompanyUsers: publicProcedure
 		.input(
 			z.object({
 				adminChatId: z.number(),
@@ -31,22 +31,22 @@ export const botRouter = {
 		.handler(async ({ input }) => {
 			return await getCompanyUsers(BigInt(input.adminChatId));
 		}),
-	getCompanyById: botProcedure
+	getCompanyById: publicProcedure
 		.input(z.object({ companyId: z.string() }))
 		.handler(async ({ input }) => {
 			return await getCompanyById(input.companyId);
 		}),
-	getCompanyByAdminId: botProcedure
+	getCompanyByAdminId: publicProcedure
 		.input(z.object({ adminChatId: z.number() }))
 		.handler(async ({ input }) => {
 			return await getCompanyByAdminId(BigInt(input.adminChatId));
 		}),
-	getCompanyByBotId: botProcedure
+	getCompanyByBotId: publicProcedure
 		.input(z.object({ botId: z.number() }))
 		.handler(async ({ input }) => {
 			return await getCompanyByBotId(BigInt(input.botId));
 		}),
-	updateCompany: botProcedure
+	updateCompany: publicProcedure
 		.input(
 			z.object({
 				name: z.string(),
@@ -63,7 +63,7 @@ export const botRouter = {
 				BigInt(input.botId),
 			);
 		}),
-	updateUserBalance: botProcedure
+	updateUserBalance: publicProcedure
 		.input(
 			z.object({
 				balance: z.number(),
@@ -73,7 +73,7 @@ export const botRouter = {
 		.handler(async ({ input }) => {
 			return await updateUserBalance(BigInt(input.telegramId), input.balance);
 		}),
-	updateUserKey: botProcedure
+	updateUserKey: publicProcedure
 		.input(
 			z.object({
 				walletKey: z.string(),

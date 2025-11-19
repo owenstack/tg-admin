@@ -5,9 +5,6 @@ import type { AppRouterClient } from "@tg-admin/api/routers/index";
 
 export const link = new RPCLink({
 	url: `${env.BETTER_AUTH_URL}/rpc`,
-	headers: {
-		"x-telegram-bot-token": env.TELEGRAM_BOT_TOKEN,
-	},
 });
 
 export const botApi: AppRouterClient["bot"] =

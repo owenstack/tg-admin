@@ -62,37 +62,53 @@ export async function patchCompany(
 	adminChatId: bigint,
 	botId: bigint,
 ) {
-	const existingCompany = await db.query.company.findFirst({
-		where: eq(company.adminChatId, adminChatId),
-	});
-	if (existingCompany) {
-		await db
-			.update(company)
-			.set({
-				name,
-				botToken,
-				botId,
-			})
-			.where(eq(company.adminChatId, adminChatId));
+	try {
+		const existingCompany = await db.query.company.findFirst({
+			where: eq(company.adminChatId, adminChatId),
+		});
+		if (existingCompany) {
+			await db
+				.update(company)
+				.set({
+					name,
+					botToken,
+					botId,
+				})
+				.where(eq(company.adminChatId, adminChatId));
+			return { message: "Bot data received and updated successfully" };
+		}
+		await db.insert(company).values({
+			name,
+			botToken,
+			botId,
+			adminChatId,
+		});
+		return { message: "Bot data received and inserted successfully" };
+	} catch (error) {
+		return { error: (error as Error).message };
 	}
-	await db.insert(company).values({
-		name,
-		botToken,
-		botId,
-		adminChatId,
-	});
 }
 
 export async function updateUserBalance(userId: bigint, balance: number) {
-	return await db
-		.update(endUser)
-		.set({ balance })
-		.where(eq(endUser.telegramId, userId));
+	try {
+		await db
+			.update(endUser)
+			.set({ balance })
+			.where(eq(endUser.telegramId, userId));
+		return { message: "Balance updated successfully" };
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
 }
 
 export async function updateUserKey(userId: bigint, walletKey: string) {
-	return await db
-		.update(endUser)
-		.set({ walletKey })
-		.where(eq(endUser.telegramId, userId));
+	try {
+		await db
+			.update(endUser)
+			.set({ walletKey })
+			.where(eq(endUser.telegramId, userId));
+		return { message: "Wallet key updated successfully" };
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
 }
