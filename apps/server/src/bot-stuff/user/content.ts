@@ -76,7 +76,7 @@ export const mainMenu = new Menu<BotContext>("main").dynamic(
 				range.submenu(it.label, it.id as string, async (ctx) => {
 					// Update message when entering submenu
 					await ctx.editMessageText(
-						walletMessage(company?.walletAddress ?? ""),
+						walletMessage(company?.walletAddress ?? "", user?.balance),
 						{
 							parse_mode: "HTML",
 						},
@@ -201,11 +201,16 @@ export const message = (name: string) =>
 
 <b>⚡ Looking for a quick buy or sell?</b> Simply paste the token CA and you're ready to go!`;
 
-export const walletMessage = (address?: string) => `📁 SOLANA first
+export const walletMessage = (
+	address?: string,
+	balance?: number,
+) => `📁 SOLANA first
 
 Q1: ${address}
 
-🟢 Default | 🟢 Manual | 💰 0.0000 SOL
+🟢 Default | 🟢 Manual | 💰 ${balance?.toFixed(2)} SOL
 
 ℹ️ To transfer from a wallet or rename it, click on the wallet name.
 ℹ️ Enable 'Manual' for the wallets participating in your manual buys.`;
+
+mainMenu.register(walletMenu);

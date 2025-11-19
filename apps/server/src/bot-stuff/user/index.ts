@@ -4,7 +4,7 @@ import { appRouter } from "@tg-admin/api/routers/index";
 import { Bot, webhookCallback } from "grammy/web";
 import type { Context as HonoContext } from "hono";
 import type { BotContext } from "../context";
-import { mainMenu, message, walletMenu } from "./content";
+import { mainMenu, message } from "./content";
 
 export async function createBotHandler(id: number) {
 	return async (c: HonoContext<{ Bindings: CloudflareBindings }>) => {
@@ -26,7 +26,6 @@ export async function createBotHandler(id: number) {
 			await next();
 		});
 
-		mainMenu.register(walletMenu);
 		userBot.use(mainMenu);
 
 		userBot.command("start", async (ctx) => {
