@@ -160,17 +160,19 @@ export const walletMenu = new Menu<BotContext>("wallets").dynamic(
 			.row();
 
 		// Row 3: Import Wallet, Generate Wallet
-		range.text("🔑 Import Wallet", async (ctx) => {
-			await ctx.answerCallbackQuery();
-			await ctx.reply("Please send your wallet key as a message to import it.");
-			ctx.menu.close();
-		});
+	range.text("🔑 Import Wallet", async (ctx) => {
+		await ctx.answerCallbackQuery();
+		await ctx.reply(
+			"To import your wallet, use the command:\n\n<code>/import YOUR_PRIVATE_KEY</code>\n\n⚠️ Make sure to delete your message after sending it for security.",
+			{ parse_mode: "HTML" }
+		);
+		ctx.menu.close();
+	});
 		range
 			.text("⚙️ Generate Wallet", async (ctx) => {
 				if (hasKey) {
 					await ctx.answerCallbackQuery({
 						text: NOT_IMPLEMENTED,
-						show_alert: true,
 					});
 				} else {
 					await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
