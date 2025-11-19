@@ -1,15 +1,19 @@
 import { env } from "cloudflare:workers";
+import { createRouterClient } from "@orpc/server";
+import { createContext } from "@tg-admin/api/context";
+import { appRouter } from "@tg-admin/api/routers/index";
 import { Bot, webhookCallback } from "grammy/web";
 import type { Context as HonoContext } from "hono";
-import { createApi } from "@/orpc";
+
 import type { BotContext } from "../context";
 import { startMessage, usersMenu } from "./content";
 
 const adminBot = new Bot<BotContext>(env.TELEGRAM_BOT_TOKEN);
 
 export function createAdminBotHandler() {
-	return async (c: HonoContext) => {
-		const api = createApi(c.env.BETTER_AUTH_URL);
+	return async (c: HonoContext<{ Bindings: CloudflareBindings }>) => {
+		const context = await createContext({ context: c });
+		const api = createRouterClient(appRouter, { context }).bot;
 		adminBot.use(async (ctx, next) => {
 			ctx.botApi = api;
 			await next();

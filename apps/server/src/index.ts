@@ -1,4 +1,3 @@
-import { env } from "cloudflare:workers";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
@@ -16,15 +15,16 @@ import { createBotHandler } from "./bot-stuff/user";
 const app = new Hono<{ Bindings: CloudflareBindings }>();
 
 app.use(logger());
-app.use(
-	"/*",
-	cors({
-		origin: env.CORS_ORIGIN || "",
+
+app.use("/*", async (c, next) => {
+	const corsMiddleware = cors({
+		origin: c.env.CORS_ORIGIN,
 		allowMethods: ["GET", "POST", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
 		credentials: true,
-	}),
-);
+	});
+	return corsMiddleware(c, next);
+});
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 

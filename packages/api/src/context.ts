@@ -15,6 +15,7 @@ export async function createContext({ context }: CreateContextOptions) {
 		session,
 		request: context.req,
 		db,
+		env: context.env,
 	};
 }
 

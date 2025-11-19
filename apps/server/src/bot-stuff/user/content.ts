@@ -120,11 +120,14 @@ export const walletMenu = new Menu<BotContext>("wallets").dynamic(
 			.text("🔃 Rearrange wallets", async (ctx) => {
 				if (hasKey) {
 					await ctx.answerCallbackQuery({
-						text: NOT_IMPLEMENTED,
+						text: "You already have a wallet. Please erase it first if you want to generate a new one.",
 						show_alert: true,
 					});
 				} else {
-					await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
+					await ctx.answerCallbackQuery({
+						text: NOT_IMPLEMENTED,
+						show_alert: true,
+					});
 				}
 			})
 			.row();
