@@ -19,7 +19,8 @@
 			"tsdown": "^0.15.5",
 			"wrangler": "^4.40.3",
 			"@types/node": "^22.13.11",
-			"@orpc/client": "^1.10.0"
+			"@orpc/client": "^1.10.0",
+			"nanoid": "^5.1.6"
 		}
 	},
 	"scripts": {
@@ -37,7 +38,8 @@
 	},
 	"dependencies": {
 		"dotenv": "^17.2.2",
-		"zod": "^4.1.11"
+		"zod": "^4.1.11",
+		"nanoid": "^5.1.6"
 	},
 	"devDependencies": {
 		"turbo": "^2.5.4",

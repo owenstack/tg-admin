@@ -12,16 +12,19 @@
 		"typegen": "wrangler types --env-interface CloudflareBindings"
 	},
 	"dependencies": {
-		"hono": "catalog:",
-		"@orpc/server": "catalog:",
+		"@grammyjs/menu": "^1.3.1",
 		"@orpc/openapi": "catalog:",
+		"@orpc/server": "catalog:",
+		"@orpc/client": "catalog:",
 		"@orpc/zod": "catalog:",
-		"better-auth": "catalog:",
-		"dotenv": "catalog:",
-		"zod": "catalog:",
 		"@tg-admin/api": "workspace:*",
 		"@tg-admin/auth": "workspace:*",
-		"@tg-admin/db": "workspace:*"
+		"@tg-admin/db": "workspace:*",
+		"better-auth": "catalog:",
+		"dotenv": "catalog:",
+		"grammy": "^1.38.3",
+		"hono": "catalog:",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"typescript": "catalog:",

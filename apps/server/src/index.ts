@@ -10,6 +10,7 @@ import { auth } from "@tg-admin/auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { createBotHandler } from "./bot-stuff/user";
 
 const app = new Hono();
 
@@ -45,6 +46,11 @@ export const rpcHandler = new RPCHandler(appRouter, {
 			console.error(error);
 		}),
 	],
+});
+
+app.post("/bot", async (c) => {
+	const botHandler = createBotHandler();
+	return botHandler(c);
 });
 
 app.use("/*", async (c, next) => {

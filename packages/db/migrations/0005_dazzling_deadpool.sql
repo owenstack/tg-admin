@@ -1,0 +1,1 @@
+ALTER TABLE `end_user` DROP COLUMN `is_verified`;
