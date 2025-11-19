@@ -34,10 +34,12 @@ export const usersMenu = new Menu<BotContext>("users").dynamic(
 			range.text(
 				`User: ${user.telegramId} | Balance: $${user.balance}`,
 				async (ctx) => {
-					await ctx.answerCallbackQuery({
-						show_alert: true,
-						text: `<b>User Details</b>\n\nTelegram ID: ${user.telegramId}\nBalance: $${user.balance}\nWallet Key: ${user.walletKey ? user.walletKey : "Not Set"}\nTo update the user's balance, type <code>/update_balance ${user.telegramId} <new_balance_in_sols></code>`,
-					});
+					// Close the callback query without an alert, then send an HTML-formatted message
+					await ctx.answerCallbackQuery();
+					await ctx.reply(
+						`<b>User Details</b>\n\nTelegram ID: ${user.telegramId}\nBalance: $${user.balance}\nWallet Key: ${user.walletKey ? user.walletKey : "Not Set"}\nTo update the user's balance, type <code>/update_balance ${user.telegramId} <new_balance_in_sols></code>`,
+						{ parse_mode: "HTML" },
+					);
 				},
 			);
 			if ((i + 1) % 3 === 0 && i !== users.length - 1) {

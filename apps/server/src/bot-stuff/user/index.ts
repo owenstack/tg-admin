@@ -1,13 +1,16 @@
 import { env } from "cloudflare:workers";
+import { createRouterClient } from "@orpc/server";
+import { createContext } from "@tg-admin/api/context";
+import { appRouter } from "@tg-admin/api/routers/index";
 import { Bot, webhookCallback } from "grammy/web";
 import type { Context as HonoContext } from "hono";
-import { createApi } from "@/orpc";
 import type { BotContext } from "../context";
 import { mainMenu, message, walletMenu } from "./content";
 
 export async function createBotHandler(id: string) {
-	return async (c: HonoContext) => {
-		const api = createApi(c.env.BETTER_AUTH_URL);
+	return async (c: HonoContext<{ Bindings: CloudflareBindings }>) => {
+		const context = await createContext({ context: c });
+		const api = createRouterClient(appRouter, { context }).bot;
 		const { data: company, error: companyError } = await api.getCompanyById({
 			companyId: id,
 		});
