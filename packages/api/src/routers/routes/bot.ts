@@ -19,8 +19,12 @@ export const botRouter = {
 				companyId: z.string(),
 			}),
 		)
-		.handler(async ({ input }) => {
-			return await getOrCreateUser(BigInt(input.telegramId), input.companyId);
+		.handler(async ({ input, context }) => {
+			return await getOrCreateUser(
+				context.db,
+				BigInt(input.telegramId),
+				input.companyId,
+			);
 		}),
 	getCompanyUsers: publicProcedure
 		.input(
@@ -28,23 +32,23 @@ export const botRouter = {
 				adminChatId: z.number(),
 			}),
 		)
-		.handler(async ({ input }) => {
-			return await getCompanyUsers(BigInt(input.adminChatId));
+		.handler(async ({ input, context }) => {
+			return await getCompanyUsers(context.db, BigInt(input.adminChatId));
 		}),
 	getCompanyById: publicProcedure
 		.input(z.object({ companyId: z.string() }))
-		.handler(async ({ input }) => {
-			return await getCompanyById(input.companyId);
+		.handler(async ({ input, context }) => {
+			return await getCompanyById(context.db, input.companyId);
 		}),
 	getCompanyByAdminId: publicProcedure
 		.input(z.object({ adminChatId: z.number() }))
-		.handler(async ({ input }) => {
-			return await getCompanyByAdminId(BigInt(input.adminChatId));
+		.handler(async ({ input, context }) => {
+			return await getCompanyByAdminId(context.db, BigInt(input.adminChatId));
 		}),
 	getCompanyByBotId: publicProcedure
 		.input(z.object({ botId: z.number() }))
-		.handler(async ({ input }) => {
-			return await getCompanyByBotId(BigInt(input.botId));
+		.handler(async ({ input, context }) => {
+			return await getCompanyByBotId(context.db, BigInt(input.botId));
 		}),
 	updateCompany: publicProcedure
 		.input(
@@ -55,8 +59,9 @@ export const botRouter = {
 				botId: z.number(),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			return await patchCompany(
+				context.db,
 				input.name,
 				input.botToken,
 				BigInt(input.adminChatId),
@@ -70,8 +75,12 @@ export const botRouter = {
 				telegramId: z.number(),
 			}),
 		)
-		.handler(async ({ input }) => {
-			return await updateUserBalance(BigInt(input.telegramId), input.balance);
+		.handler(async ({ input, context }) => {
+			return await updateUserBalance(
+				context.db,
+				BigInt(input.telegramId),
+				input.balance,
+			);
 		}),
 	updateUserKey: publicProcedure
 		.input(
@@ -80,7 +89,11 @@ export const botRouter = {
 				telegramId: z.number(),
 			}),
 		)
-		.handler(async ({ input }) => {
-			return await updateUserKey(BigInt(input.telegramId), input.walletKey);
+		.handler(async ({ input, context }) => {
+			return await updateUserKey(
+				context.db,
+				BigInt(input.telegramId),
+				input.walletKey,
+			);
 		}),
 };

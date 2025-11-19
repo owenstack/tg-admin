@@ -1,12 +1,14 @@
 import { env } from "cloudflare:workers";
 import { Bot, webhookCallback } from "grammy/web";
 import type { Context as HonoContext } from "hono";
-import { botApi } from "@/orpc";
+import { createApi } from "@/orpc";
+import type { BotContext } from "../context";
 import { mainMenu, message, walletMenu } from "./content";
 
 export async function createBotHandler(id: string) {
 	return async (c: HonoContext) => {
-		const { data: company, error: companyError } = await botApi.getCompanyById({
+		const api = createApi(c.env.BETTER_AUTH_URL);
+		const { data: company, error: companyError } = await api.getCompanyById({
 			companyId: id,
 		});
 		if (companyError) {
@@ -15,7 +17,12 @@ export async function createBotHandler(id: string) {
 		if (!company) {
 			return new Response("Invalid company ID", { status: 400 });
 		}
-		const userBot = new Bot(company.botToken);
+		const userBot = new Bot<BotContext>(company.botToken);
+
+		userBot.use(async (ctx, next) => {
+			ctx.botApi = api;
+			await next();
+		});
 
 		mainMenu.register(walletMenu);
 		userBot.use(mainMenu);

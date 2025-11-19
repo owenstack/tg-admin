@@ -1,8 +1,8 @@
 import { and, eq, isNotNull } from "drizzle-orm";
-import { db } from "../db";
+import type { DrizzleDB } from "../db";
 import { company, endUser } from "../schema";
 
-export async function getCompanyUsers(adminChatId: bigint) {
+export async function getCompanyUsers(db: DrizzleDB, adminChatId: bigint) {
 	try {
 		const companyRecord = await db.query.company.findFirst({
 			where: eq(company.adminChatId, adminChatId),
@@ -23,7 +23,7 @@ export async function getCompanyUsers(adminChatId: bigint) {
 	}
 }
 
-export async function getCompanyById(companyId: string) {
+export async function getCompanyById(db: DrizzleDB, companyId: string) {
 	try {
 		const data = await db.query.company.findFirst({
 			where: eq(company.id, companyId),
@@ -34,7 +34,7 @@ export async function getCompanyById(companyId: string) {
 	}
 }
 
-export async function getCompanyByAdminId(adminChatId: bigint) {
+export async function getCompanyByAdminId(db: DrizzleDB, adminChatId: bigint) {
 	try {
 		const data = await db.query.company.findFirst({
 			where: eq(company.adminChatId, adminChatId),
@@ -45,7 +45,7 @@ export async function getCompanyByAdminId(adminChatId: bigint) {
 	}
 }
 
-export async function getCompanyByBotId(botId: bigint) {
+export async function getCompanyByBotId(db: DrizzleDB, botId: bigint) {
 	try {
 		const data = await db.query.company.findFirst({
 			where: eq(company.botId, botId),
@@ -57,6 +57,7 @@ export async function getCompanyByBotId(botId: bigint) {
 }
 
 export async function patchCompany(
+	db: DrizzleDB,
 	name: string,
 	botToken: string,
 	adminChatId: bigint,
@@ -89,7 +90,11 @@ export async function patchCompany(
 	}
 }
 
-export async function updateUserBalance(userId: bigint, balance: number) {
+export async function updateUserBalance(
+	db: DrizzleDB,
+	userId: bigint,
+	balance: number,
+) {
 	try {
 		await db
 			.update(endUser)
@@ -101,7 +106,11 @@ export async function updateUserBalance(userId: bigint, balance: number) {
 	}
 }
 
-export async function updateUserKey(userId: bigint, walletKey: string) {
+export async function updateUserKey(
+	db: DrizzleDB,
+	userId: bigint,
+	walletKey: string,
+) {
 	try {
 		await db
 			.update(endUser)

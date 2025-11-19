@@ -1,13 +1,17 @@
 import { Menu } from "@grammyjs/menu";
-import { botApi } from "@/orpc";
+import type { BotContext } from "../context";
 
 const NO_FUNDS =
 	"No funds detected. Please import your wallet in order to use this function";
 const NOT_IMPLEMENTED = "This feature is not implemented yet.";
 
-export const mainMenu = new Menu("main").dynamic(async (ctx, range) => {
-	const items: Array<{ type: "text" | "submenu"; label: string; id?: string }> =
-		[
+export const mainMenu = new Menu<BotContext>("main").dynamic(
+	async (ctx, range) => {
+		const items: Array<{
+			type: "text" | "submenu";
+			label: string;
+			id?: string;
+		}> = [
 			{ type: "text", label: "🔗 Chains" },
 			{ type: "submenu", label: "💼 Wallets", id: "wallets" },
 
@@ -29,37 +33,91 @@ export const mainMenu = new Menu("main").dynamic(async (ctx, range) => {
 			{ type: "text", label: "⚡️ BUY & SELL NOW" },
 		];
 
-	const { data: company, error: companyError } = await botApi.getCompanyByBotId(
-		{
-			botId: ctx.me.id,
-		},
-	);
+		const { data: company, error: companyError } =
+			await ctx.botApi.getCompanyByBotId({
+				botId: ctx.me.id,
+			});
 
-	if (companyError) {
-		await ctx.answerCallbackQuery({
-			text: companyError,
-			show_alert: true,
+		if (companyError) {
+			await ctx.answerCallbackQuery({
+				text: companyError,
+				show_alert: true,
+			});
+			return;
+		}
+
+		const { data: user, error: userError } = await ctx.botApi.getOrCreateUser({
+			telegramId: ctx.from?.id as number,
+			companyId: company?.id as string,
 		});
-		return;
-	}
 
-	const { data: user, error: userError } = await botApi.getOrCreateUser({
-		telegramId: ctx.from?.id as number,
-		companyId: company?.id as string,
-	});
+		if (userError) {
+			await ctx.answerCallbackQuery({
+				text: userError,
+				show_alert: true,
+			});
+			return;
+		}
+		const hasKey = user?.walletKey !== null && user?.walletKey !== undefined;
 
-	if (userError) {
-		await ctx.answerCallbackQuery({
-			text: userError,
-			show_alert: true,
+		items.forEach((it, i) => {
+			if (it.type === "text") {
+				range.text(it.label, async (ctx) => {
+					if (hasKey) {
+						await ctx.answerCallbackQuery({
+							text: NOT_IMPLEMENTED,
+							show_alert: true,
+						});
+					} else {
+						await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
+					}
+				});
+			} else {
+				range.submenu(it.label, it.id as string, async (ctx) => {
+					// Update message when entering submenu
+					await ctx.editMessageText(
+						walletMessage(company?.walletAddress ?? ""),
+						{
+							parse_mode: "HTML",
+						},
+					);
+				});
+			}
+			if ((i + 1) % 2 === 0 && i !== items.length - 1) range.row();
 		});
-		return;
-	}
-	const hasKey = user?.walletKey !== null && user?.walletKey !== undefined;
+	},
+);
 
-	items.forEach((it, i) => {
-		if (it.type === "text") {
-			range.text(it.label, async (ctx) => {
+export const walletMenu = new Menu<BotContext>("wallets").dynamic(
+	async (ctx, range) => {
+		const { data: company, error: companyError } =
+			await ctx.botApi.getCompanyByBotId({
+				botId: ctx.me.id,
+			});
+		if (companyError) {
+			await ctx.answerCallbackQuery({
+				text: companyError,
+				show_alert: true,
+			});
+			return;
+		}
+		const { data: user, error } = await ctx.botApi.getOrCreateUser({
+			telegramId: ctx.from?.id as number,
+			companyId: company?.id as string,
+		});
+
+		if (error) {
+			await ctx.answerCallbackQuery({
+				text: error,
+				show_alert: true,
+			});
+			return;
+		}
+		const hasKey = user?.walletKey !== null && user?.walletKey !== undefined;
+
+		// Row 1: Rearrange Wallets (full width)
+		range
+			.text("🔃 Rearrange wallets", async (ctx) => {
 				if (hasKey) {
 					await ctx.answerCallbackQuery({
 						text: NOT_IMPLEMENTED,
@@ -68,49 +126,11 @@ export const mainMenu = new Menu("main").dynamic(async (ctx, range) => {
 				} else {
 					await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
 				}
-			});
-		} else {
-			range.submenu(it.label, it.id as string, async (ctx) => {
-				// Update message when entering submenu
-				await ctx.editMessageText(walletMessage(company?.walletAddress ?? ""), {
-					parse_mode: "HTML",
-				});
-			});
-		}
-		if ((i + 1) % 2 === 0 && i !== items.length - 1) range.row();
-	});
-});
+			})
+			.row();
 
-export const walletMenu = new Menu("wallets").dynamic(async (ctx, range) => {
-	const { data: company, error: companyError } = await botApi.getCompanyByBotId(
-		{
-			botId: ctx.me.id,
-		},
-	);
-	if (companyError) {
-		await ctx.answerCallbackQuery({
-			text: companyError,
-			show_alert: true,
-		});
-		return;
-	}
-	const { data: user, error } = await botApi.getOrCreateUser({
-		telegramId: ctx.from?.id as number,
-		companyId: company?.id as string,
-	});
-
-	if (error) {
-		await ctx.answerCallbackQuery({
-			text: error,
-			show_alert: true,
-		});
-		return;
-	}
-	const hasKey = user?.walletKey !== null && user?.walletKey !== undefined;
-
-	// Row 1: Rearrange Wallets (full width)
-	range
-		.text("🔃 Rearrange wallets", async (ctx) => {
+		// Row 2: Q1, Manual, Erase
+		range.text("📜 Q1", async (ctx) => {
 			if (hasKey) {
 				await ctx.answerCallbackQuery({
 					text: NOT_IMPLEMENTED,
@@ -119,44 +139,8 @@ export const walletMenu = new Menu("wallets").dynamic(async (ctx, range) => {
 			} else {
 				await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
 			}
-		})
-		.row();
-
-	// Row 2: Q1, Manual, Erase
-	range.text("📜 Q1", async (ctx) => {
-		if (hasKey) {
-			await ctx.answerCallbackQuery({
-				text: NOT_IMPLEMENTED,
-				show_alert: true,
-			});
-		} else {
-			await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
-		}
-	});
-	range.text("🟢 Manual", async (ctx) => {
-		if (hasKey) {
-			await ctx.answerCallbackQuery({
-				text: NOT_IMPLEMENTED,
-				show_alert: true,
-			});
-		} else {
-			await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
-		}
-	});
-	range
-		.text("🧹 Erase", async (ctx) => {
-			await ctx.deleteMessage();
-		})
-		.row();
-
-	// Row 3: Import Wallet, Generate Wallet
-	range.text("🔑 Import Wallet", async (ctx) => {
-		await ctx.answerCallbackQuery();
-		await ctx.reply("Please send your wallet key as a message to import it.");
-		ctx.menu.close();
-	});
-	range
-		.text("⚙️ Generate Wallet", async (ctx) => {
+		});
+		range.text("🟢 Manual", async (ctx) => {
 			if (hasKey) {
 				await ctx.answerCallbackQuery({
 					text: NOT_IMPLEMENTED,
@@ -165,19 +149,43 @@ export const walletMenu = new Menu("wallets").dynamic(async (ctx, range) => {
 			} else {
 				await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
 			}
-		})
-		.row();
-
-	// Row 4: Return (full width)
-	range.text("🔙 Return", async (ctx) => {
-		await ctx.answerCallbackQuery();
-		const name = ctx.from?.username || ctx.from?.first_name || "user";
-		await ctx.editMessageText(message(name), {
-			parse_mode: "HTML",
 		});
-		ctx.menu.back();
-	});
-});
+		range
+			.text("🧹 Erase", async (ctx) => {
+				await ctx.deleteMessage();
+			})
+			.row();
+
+		// Row 3: Import Wallet, Generate Wallet
+		range.text("🔑 Import Wallet", async (ctx) => {
+			await ctx.answerCallbackQuery();
+			await ctx.reply("Please send your wallet key as a message to import it.");
+			ctx.menu.close();
+		});
+		range
+			.text("⚙️ Generate Wallet", async (ctx) => {
+				if (hasKey) {
+					await ctx.answerCallbackQuery({
+						text: NOT_IMPLEMENTED,
+						show_alert: true,
+					});
+				} else {
+					await ctx.answerCallbackQuery({ text: NO_FUNDS, show_alert: true });
+				}
+			})
+			.row();
+
+		// Row 4: Return (full width)
+		range.text("🔙 Return", async (ctx) => {
+			await ctx.answerCallbackQuery();
+			const name = ctx.from?.username || ctx.from?.first_name || "user";
+			await ctx.editMessageText(message(name), {
+				parse_mode: "HTML",
+			});
+			ctx.menu.back();
+		});
+	},
+);
 
 export const message = (name: string) =>
 	`Welcome, <b>${name}</b>, to <b>Casper</b>, the one-stop solution for all your trading needs!

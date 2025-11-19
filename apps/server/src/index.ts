@@ -13,7 +13,7 @@ import { logger } from "hono/logger";
 import { createAdminBotHandler } from "./bot-stuff/admin";
 import { createBotHandler } from "./bot-stuff/user";
 
-const app = new Hono();
+const app = new Hono<{ Bindings: CloudflareBindings }>();
 
 app.use(logger());
 app.use(
