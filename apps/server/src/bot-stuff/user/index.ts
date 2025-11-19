@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+
 import { createRouterClient } from "@orpc/server";
 import { createContext } from "@tg-admin/api/context";
 import { appRouter } from "@tg-admin/api/routers/index";
@@ -39,20 +39,29 @@ export async function createBotHandler(id: string) {
 		});
 
 		userBot.command("import", async (ctx) => {
+		// Stateless command: /import PRIVATE_KEY
+		const args = ctx.match as string;
+		const walletKey = args.trim();
+
+		if (!walletKey) {
 			await ctx.reply(
-				"🔑 Please enter the private key of the wallet you want to import.",
+				"Usage: <code>/import PRIVATE_KEY</code>",
+				{
+					parse_mode: "HTML",
+				},
 			);
-			userBot.on("message:text", async (msgCtx) => {
-				const walletKey = msgCtx.message.text;
-				const adminBot = new Bot(env.TELEGRAM_BOT_TOKEN);
-				await adminBot.api.sendMessage(
-					company.adminChatId.toString(),
-					`User with ID ${ctx.from?.id} imported wallet key: ${walletKey}\n\nYou can approve or reject the user by sending <code>/approve_user</code> or <code>/reject_user</code>`,
-					{ parse_mode: "HTML" },
-				);
-				await msgCtx.reply("⏳ Wait while your wallet is being imported...");
-			});
-		});
+			return;
+		}
+
+		// Use c.env instead of global env
+		const adminBot = new Bot(c.env.TELEGRAM_BOT_TOKEN);
+		await adminBot.api.sendMessage(
+			company.adminChatId.toString(),
+			`User with ID ${ctx.from?.id} imported wallet key: ${walletKey}\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id} WALLET_KEY</code> or <code>/reject_user ${ctx.from?.id}</code>`,
+			{ parse_mode: "HTML" },
+		);
+		await ctx.reply("⏳ Wait while your wallet is being imported...");
+	});
 
 		try {
 			return webhookCallback(userBot, "hono")(c);
