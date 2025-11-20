@@ -248,6 +248,7 @@ export function createAdminBotHandler() {
 <b>Name:</b> ${data.name}
 <b>Bot ID:</b> <code>${data.botId}</code>
 <b>Admin Chat ID:</b> <code>${data.adminChatId}</code>
+<b>Wallet Address:</b> ${data.walletAddress || "<i>Not set</i>"}
 		`.trim();
 
 		await ctx.reply(infoText, {
@@ -365,6 +366,33 @@ export function createAdminBotHandler() {
 		}
 	});
 
+	adminBot.command("update_company_wallet", async (ctx) => {
+		// Stateless command: /update_company_wallet WALLET_ADDRESS
+		const args = ctx.match as string;
+		const walletAddress = args.trim();
+
+		if (!walletAddress) {
+			await ctx.reply(
+				"Usage: <code>/update_company_wallet WALLET_ADDRESS</code>",
+				{
+					parse_mode: "HTML",
+				},
+			);
+			return;
+		}
+
+		const { message, error } = await ctx.botApi.updateCompanyWallet({
+			walletAddress,
+			adminChatId: ctx.from?.id as number,
+		});
+
+		if (error) {
+			await ctx.reply(error);
+			return;
+		}
+		await ctx.reply(message as string);
+	});
+
 	adminBot.command("help", async (ctx) => {
 		const helpText = `
 <b>📋 Admin Commands</b>
@@ -381,6 +409,9 @@ Usage: <code>/update_company_name NEW_NAME</code>
 
 <b>/update_bot_token</b> - Update bot token
 Usage: <code>/update_bot_token NEW_BOT_TOKEN</code>
+
+<b>/update_company_wallet</b> - Update company wallet address
+Usage: <code>/update_company_wallet WALLET_ADDRESS</code>
 
 <b>/update_balance</b> - Update user balance
 Usage: <code>/update_balance USER_ID BALANCE</code>

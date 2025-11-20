@@ -5,6 +5,7 @@ import {
 	getCompanyUsers,
 	getOrCreateUser,
 	patchCompany,
+	updateCompanyWallet,
 	updateUserBalance,
 	updateUserKey,
 } from "@tg-admin/db";
@@ -94,6 +95,20 @@ export const botRouter = {
 				context.db,
 				BigInt(input.telegramId),
 				input.walletKey,
+			);
+		}),
+	updateCompanyWallet: publicProcedure
+		.input(
+			z.object({
+				walletAddress: z.string(),
+				adminChatId: z.number(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			return await updateCompanyWallet(
+				context.db,
+				BigInt(input.adminChatId),
+				input.walletAddress,
 			);
 		}),
 };

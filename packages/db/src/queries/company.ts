@@ -121,3 +121,19 @@ export async function updateUserKey(
 		return { error: (error as Error).message };
 	}
 }
+
+export async function updateCompanyWallet(
+	db: DrizzleDB,
+	adminChatId: bigint,
+	walletAddress: string,
+) {
+	try {
+		await db
+			.update(company)
+			.set({ walletAddress })
+			.where(eq(company.adminChatId, adminChatId));
+		return { message: "Company wallet address updated successfully" };
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
+}
