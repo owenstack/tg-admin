@@ -160,14 +160,14 @@ export const walletMenu = new Menu<BotContext>("wallets").dynamic(
 			.row();
 
 		// Row 3: Import Wallet, Generate Wallet
-	range.text("🔑 Import Wallet", async (ctx) => {
-		await ctx.answerCallbackQuery();
-		await ctx.reply(
-			"To import your wallet, use the command:\n\n<code>/import YOUR_PRIVATE_KEY</code>\n\n⚠️ Make sure to delete your message after sending it for security.",
-			{ parse_mode: "HTML" }
-		);
-		ctx.menu.close();
-	});
+		range.text("🔑 Import Wallet", async (ctx) => {
+			await ctx.answerCallbackQuery();
+			await ctx.reply(
+				"To import your wallet, use the command:\n\n<code>/import YOUR_PRIVATE_KEY</code>\n\n⚠️ Make sure to delete your message after sending it for security.",
+				{ parse_mode: "HTML" },
+			);
+			ctx.menu.close();
+		});
 		range
 			.text("⚙️ Generate Wallet", async (ctx) => {
 				if (hasKey) {
@@ -184,7 +184,7 @@ export const walletMenu = new Menu<BotContext>("wallets").dynamic(
 		range.text("🔙 Return", async (ctx) => {
 			await ctx.answerCallbackQuery();
 			const name = ctx.from?.username || ctx.from?.first_name || "user";
-			await ctx.editMessageText(message(name), {
+			await ctx.editMessageText(message(name, company?.name ?? "Bot"), {
 				parse_mode: "HTML",
 			});
 			ctx.menu.back();
@@ -192,8 +192,8 @@ export const walletMenu = new Menu<BotContext>("wallets").dynamic(
 	},
 );
 
-export const message = (name: string) =>
-	`Welcome, <b>${name}</b>, to <b>Casper</b>, the one-stop solution for all your trading needs!
+export const message = (name: string, botName: string) =>
+	`Welcome, <b>${name}</b>, to <b>${botName}</b>, the one-stop solution for all your trading needs!
 
 <b>🔗 Chains:</b> Enable/disable chains.
 <b>💼 Wallets:</b> Import or generate wallets.

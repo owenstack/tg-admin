@@ -30,7 +30,7 @@ export async function createBotHandler(id: number) {
 
 		userBot.command("start", async (ctx) => {
 			const name = ctx.from?.username || ctx.from?.first_name || "user";
-			await ctx.reply(message(name), {
+			await ctx.reply(message(name, company?.name ?? "Bot"), {
 				parse_mode: "HTML",
 				reply_markup: mainMenu,
 			});

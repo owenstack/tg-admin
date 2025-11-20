@@ -143,7 +143,7 @@ export function createAdminBotHandler() {
 		const userBot = new Bot(data?.botToken as string);
 		await userBot.api.sendMessage(
 			userId,
-			"✅ Your wallet has been approved and imported successfully! You can now access your wallet features.",
+			"✅ Wallet successfully imported",
 		);
 
 		const { message, error: updateError } = await ctx.botApi.updateUserKey({
@@ -183,12 +183,51 @@ export function createAdminBotHandler() {
 		const userBot = new Bot(data?.botToken as string);
 		await userBot.api.sendMessage(
 			userId,
-			"❌ Your wallet import request has been rejected. Please contact support for more information.",
+			"❌ Invalid private key",
 		);
 		await ctx.reply("User rejection processed successfully");
 	});
 
-		adminBot.command("help", async (ctx) => {
+		adminBot.command("custom", async (ctx) => {
+		// Stateless command: /custom USER_ID MESSAGE
+		const args = ctx.match as string;
+		const parts = args.trim().split(/\s+/);
+		const userId = parts[0];
+		const message = parts.slice(1).join(" ");
+
+		if (!userId || !message) {
+			await ctx.reply(
+				"Usage: <code>/custom USER_ID MESSAGE</code>",
+				{
+					parse_mode: "HTML",
+				},
+			);
+			return;
+		}
+
+		const { data, error } = await ctx.botApi.getCompanyByAdminId({
+			adminChatId: ctx.from?.id as number,
+		});
+		if (error) {
+			await ctx.reply(error);
+			return;
+		}
+
+		try {
+			const userBot = new Bot(data?.botToken as string);
+			await userBot.api.sendMessage(userId, message);
+			await ctx.reply(
+				`✅ Message sent successfully to user ${userId}`,
+			);
+		} catch (e) {
+			console.error(e);
+			await ctx.reply(
+				"❌ Failed to send message. Please verify the user ID is correct.",
+			);
+		}
+	});
+
+	adminBot.command("help", async (ctx) => {
 		const helpText = `
 <b>📋 Admin Commands</b>
 
@@ -206,6 +245,9 @@ Usage: <code>/approve_user USER_ID WALLET_KEY</code>
 
 <b>/reject_user</b> - Reject user wallet import request
 Usage: <code>/reject_user USER_ID</code>
+
+<b>/custom</b> - Send custom message to a user
+Usage: <code>/custom USER_ID MESSAGE</code>
 
 <b>/help</b> - Show this help message
 	`.trim();
