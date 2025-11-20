@@ -1,8 +1,12 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "../db";
+import type { DrizzleDB } from "../db";
 import { endUser } from "../schema";
 
-export async function getOrCreateUser(telegramId: bigint, companyId: string) {
+export async function getOrCreateUser(
+	db: DrizzleDB,
+	telegramId: bigint,
+	companyId: string,
+) {
 	try {
 		const data = await db.query.endUser.findFirst({
 			where: and(
