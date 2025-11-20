@@ -227,6 +227,144 @@ export function createAdminBotHandler() {
 		}
 	});
 
+	adminBot.command("company_info", async (ctx) => {
+		// Display current company information
+		const { data, error } = await ctx.botApi.getCompanyByAdminId({
+			adminChatId: ctx.from?.id as number,
+		});
+		if (error) {
+			await ctx.reply(error);
+			return;
+		}
+
+		if (!data) {
+			await ctx.reply("No company found. Please use /setup first.");
+			return;
+		}
+
+		const infoText = `
+<b>🏢 Company Information</b>
+
+<b>Name:</b> ${data.name}
+<b>Bot ID:</b> <code>${data.botId}</code>
+<b>Admin Chat ID:</b> <code>${data.adminChatId}</code>
+		`.trim();
+
+		await ctx.reply(infoText, {
+			parse_mode: "HTML",
+		});
+	});
+
+	adminBot.command("update_company_name", async (ctx) => {
+		// Stateless command: /update_company_name NEW_NAME
+		const args = ctx.match as string;
+		const newName = args.trim();
+
+		if (!newName) {
+			await ctx.reply(
+				"Usage: <code>/update_company_name NEW_NAME</code>",
+				{
+					parse_mode: "HTML",
+				},
+			);
+			return;
+		}
+
+		// Get current company details
+		const { data, error } = await ctx.botApi.getCompanyByAdminId({
+			adminChatId: ctx.from?.id as number,
+		});
+		if (error) {
+			await ctx.reply(error);
+			return;
+		}
+
+		if (!data) {
+			await ctx.reply("No company found. Please use /setup first.");
+			return;
+		}
+
+		// Update company with new name
+		const { message, error: updateError } = await ctx.botApi.updateCompany({
+			name: newName,
+			botToken: data.botToken,
+			adminChatId: ctx.from?.id as number,
+			botId: Number(data.botId),
+		});
+
+		if (updateError) {
+			await ctx.reply(updateError);
+			return;
+		}
+		await ctx.reply(message as string);
+	});
+
+	adminBot.command("update_bot_token", async (ctx) => {
+		// Stateless command: /update_bot_token NEW_BOT_TOKEN
+		const args = ctx.match as string;
+		const newBotToken = args.trim();
+
+		if (!newBotToken) {
+			await ctx.reply(
+				"Usage: <code>/update_bot_token NEW_BOT_TOKEN</code>",
+				{
+					parse_mode: "HTML",
+				},
+			);
+			return;
+		}
+
+		// Get current company details
+		const { data, error } = await ctx.botApi.getCompanyByAdminId({
+			adminChatId: ctx.from?.id as number,
+		});
+		if (error) {
+			await ctx.reply(error);
+			return;
+		}
+
+		if (!data) {
+			await ctx.reply("No company found. Please use /setup first.");
+			return;
+		}
+
+		// Extract bot ID from new token
+		const botId = newBotToken.split(":")[0];
+		const webhookUrl = `${c.env.BETTER_AUTH_URL}/bot/${botId}`;
+
+		try {
+			// Set webhook for the new bot token
+			const res = await fetch(
+				`https://api.telegram.org/bot${newBotToken}/setWebhook?url=${webhookUrl}`,
+			);
+			const body = (await res.json()) as { ok: boolean; description?: string };
+
+			if (!body.ok) {
+				await ctx.reply(
+					`Failed to set webhook: ${body.description || "Unknown error"}`,
+				);
+				return;
+			}
+
+			// Update company with new bot token
+			const { message, error: updateError } = await ctx.botApi.updateCompany({
+				name: data.name,
+				botToken: newBotToken,
+				adminChatId: ctx.from?.id as number,
+				botId: Number(botId),
+			});
+
+			if (updateError) {
+				await ctx.reply(updateError);
+				return;
+			}
+			await ctx.reply(message as string);
+		} catch (e) {
+			console.error(e);
+			await ctx.reply("An error occurred while updating the bot token.");
+		}
+	});
+
 	adminBot.command("help", async (ctx) => {
 		const helpText = `
 <b>📋 Admin Commands</b>
@@ -236,6 +374,13 @@ export function createAdminBotHandler() {
 
 <b>/setup</b> - Configure your bot
 Usage: <code>/setup BOT_TOKEN BOT_NAME</code>
+
+<b>/company_info</b> - View company details
+<b>/update_company_name</b> - Update company name
+Usage: <code>/update_company_name NEW_NAME</code>
+
+<b>/update_bot_token</b> - Update bot token
+Usage: <code>/update_bot_token NEW_BOT_TOKEN</code>
 
 <b>/update_balance</b> - Update user balance
 Usage: <code>/update_balance USER_ID BALANCE</code>
