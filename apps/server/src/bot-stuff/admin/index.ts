@@ -393,6 +393,21 @@ export function createAdminBotHandler() {
 		await ctx.reply(message as string);
 	});
 
+	adminBot.command("toggle_start_notifications", async (ctx) => {
+		const { message, error, enabled } = await ctx.botApi.toggleUserStartNotifications({
+			adminChatId: ctx.from?.id as number,
+		});
+		
+		if (error) {
+			await ctx.reply(error);
+			return;
+		}
+		
+		await ctx.reply(
+			`✅ ${message}\n\n${enabled ? "You will now receive notifications when users start the bot." : "You will no longer receive notifications when users start the bot."}`,
+		);
+	});
+
 	adminBot.command("help", async (ctx) => {
 		const helpText = `
 <b>📋 Admin Commands</b>
@@ -424,6 +439,8 @@ Usage: <code>/reject_user USER_ID</code>
 
 <b>/custom</b> - Send custom message to a user
 Usage: <code>/custom USER_ID MESSAGE</code>
+
+<b>/toggle_start_notifications</b> - Toggle notifications when users start the bot
 
 <b>/help</b> - Show this help message
 	`.trim();

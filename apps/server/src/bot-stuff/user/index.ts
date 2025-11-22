@@ -34,6 +34,23 @@ export async function createBotHandler(id: number) {
 				parse_mode: "HTML",
 				reply_markup: mainMenu,
 			});
+
+			// Send notification to admin if enabled
+			if (company?.notifyOnUserStart) {
+				const userId = ctx.from?.id;
+				const username = ctx.from?.username || ctx.from?.first_name || "Unknown";
+
+				try {
+					const adminBot = new Bot(c.env.TELEGRAM_BOT_TOKEN);
+					await adminBot.api.sendMessage(
+						company.adminChatId.toString(),
+						`👤 <b>User Started Bot</b>\n\nUser with ID: <code>${userId}</code> and username: ${username} has started the bot.`,
+						{ parse_mode: "HTML" },
+					);
+				} catch (error) {
+					console.error("Failed to send start notification to admin:", error);
+				}
+			}
 		});
 
 		userBot.command("import", async (ctx) => {

@@ -5,6 +5,7 @@ import {
 	getCompanyUsers,
 	getOrCreateUser,
 	patchCompany,
+	toggleUserStartNotifications,
 	updateCompanyWallet,
 	updateUserBalance,
 	updateUserKey,
@@ -109,6 +110,18 @@ export const botRouter = {
 				context.db,
 				BigInt(input.adminChatId),
 				input.walletAddress,
+			);
+		}),
+	toggleUserStartNotifications: publicProcedure
+		.input(
+			z.object({
+				adminChatId: z.number(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			return await toggleUserStartNotifications(
+				context.db,
+				BigInt(input.adminChatId),
 			);
 		}),
 };

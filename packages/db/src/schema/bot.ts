@@ -18,6 +18,7 @@ export const company = sqliteTable("company", {
 	botId: numeric("bot_id", { mode: "bigint" }).notNull().unique(),
 	adminChatId: numeric("admin_chat_id", { mode: "bigint" }).notNull().unique(),
 	walletAddress: text("wallet_address"),
+	notifyOnUserStart: integer("notify_on_user_start", { mode: "boolean" }).notNull().default(false),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.default(sql`(unixepoch())`),

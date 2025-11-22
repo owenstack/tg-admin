@@ -1,0 +1,1 @@
+ALTER TABLE `company` ADD `notify_on_user_start` integer DEFAULT false NOT NULL;

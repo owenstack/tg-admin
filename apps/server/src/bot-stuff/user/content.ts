@@ -208,7 +208,7 @@ export const walletMessage = (
 	balance?: number,
 ) => `📁 SOLANA first
 
-Q1: ${address}
+Q1: <code>${address}</code>
 
 🟢 Default | 🟢 Manual | 💰 ${balance?.toFixed(2)} SOL
 

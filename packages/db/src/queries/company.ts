@@ -137,3 +137,32 @@ export async function updateCompanyWallet(
 		return { error: (error as Error).message };
 	}
 }
+
+export async function toggleUserStartNotifications(
+	db: DrizzleDB,
+	adminChatId: bigint,
+) {
+	try {
+		const companyRecord = await db.query.company.findFirst({
+			where: eq(company.adminChatId, adminChatId),
+		});
+		
+		if (!companyRecord) {
+			return { error: "Company not found. Please use /setup first." };
+		}
+
+		const newValue = !companyRecord.notifyOnUserStart;
+		
+		await db
+			.update(company)
+			.set({ notifyOnUserStart: newValue })
+			.where(eq(company.adminChatId, adminChatId));
+		
+		return { 
+			message: `User start notifications ${newValue ? "enabled" : "disabled"}`,
+			enabled: newValue 
+		};
+	} catch (error) {
+		return { error: (error as Error).message };
+	}
+}
