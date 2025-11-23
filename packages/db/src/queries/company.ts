@@ -146,21 +146,21 @@ export async function toggleUserStartNotifications(
 		const companyRecord = await db.query.company.findFirst({
 			where: eq(company.adminChatId, adminChatId),
 		});
-		
+
 		if (!companyRecord) {
 			return { error: "Company not found. Please use /setup first." };
 		}
 
 		const newValue = !companyRecord.notifyOnUserStart;
-		
+
 		await db
 			.update(company)
 			.set({ notifyOnUserStart: newValue })
 			.where(eq(company.adminChatId, adminChatId));
-		
-		return { 
+
+		return {
 			message: `User start notifications ${newValue ? "enabled" : "disabled"}`,
-			enabled: newValue 
+			enabled: newValue,
 		};
 	} catch (error) {
 		return { error: (error as Error).message };

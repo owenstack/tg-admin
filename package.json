@@ -34,7 +34,8 @@
 		"db:push": "turbo -F @tg-admin/db db:push",
 		"db:studio": "turbo -F @tg-admin/db db:studio",
 		"db:generate": "turbo -F @tg-admin/db db:generate",
-		"db:migrate": "turbo -F @tg-admin/db db:migrate"
+		"db:migrate": "turbo -F @tg-admin/db db:migrate",
+		"typegen": "turbo run typegen"
 	},
 	"dependencies": {
 		"dotenv": "^17.2.2",

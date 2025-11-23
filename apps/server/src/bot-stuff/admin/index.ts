@@ -43,206 +43,192 @@ export function createAdminBotHandler() {
 		});
 
 		adminBot.command("setup", async (ctx) => {
-		// Stateless command: /setup BOT_TOKEN BOT_NAME
-		const args = ctx.match as string;
-		const [botToken, name] = args.trim().split(/\s+/);
+			// Stateless command: /setup BOT_TOKEN BOT_NAME
+			const args = ctx.match as string;
+			const [botToken, name] = args.trim().split(/\s+/);
 
-		if (!botToken || !name) {
-			await ctx.reply(
-				"<b>⚠️ Format Error</b>\n\nPlease provide the token and name in the command.\nUsage: <code>/setup BOT_TOKEN BOT_NAME</code>",
-				{
-					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
-
-		const botId = botToken.split(":")[0];
-		const webhookUrl = `${c.env.BETTER_AUTH_URL}/bot/${botId}`;
-
-		try {
-			const res = await fetch(
-				`https://api.telegram.org/bot${botToken}/setWebhook?url=${webhookUrl}`,
-			);
-			const body = (await res.json()) as { ok: boolean; description?: string };
-
-			if (!body.ok) {
+			if (!botToken || !name) {
 				await ctx.reply(
-					`Failed to set webhook: ${body.description || "Unknown error"}`,
+					"<b>⚠️ Format Error</b>\n\nPlease provide the token and name in the command.\nUsage: <code>/setup BOT_TOKEN BOT_NAME</code>",
+					{
+						parse_mode: "HTML",
+					},
 				);
 				return;
 			}
 
-			const { message, error } = await ctx.botApi.updateCompany({
-				name,
-				botToken,
-				adminChatId: ctx.from?.id as number,
-				botId: Number(botId),
-			});
+			const botId = botToken.split(":")[0];
+			const webhookUrl = `${c.env.BETTER_AUTH_URL}/bot/${botId}`;
 
+			try {
+				const res = await fetch(
+					`https://api.telegram.org/bot${botToken}/setWebhook?url=${webhookUrl}`,
+				);
+				const body = (await res.json()) as {
+					ok: boolean;
+					description?: string;
+				};
+
+				if (!body.ok) {
+					await ctx.reply(
+						`Failed to set webhook: ${body.description || "Unknown error"}`,
+					);
+					return;
+				}
+
+				const { message, error } = await ctx.botApi.updateCompany({
+					name,
+					botToken,
+					adminChatId: ctx.from?.id as number,
+					botId: Number(botId),
+				});
+
+				if (error) {
+					await ctx.reply(error);
+					return;
+				}
+				await ctx.reply(message as string);
+			} catch (e) {
+				console.error(e);
+				await ctx.reply("An error occurred while setting up the bot.");
+			}
+		});
+
+		adminBot.command("update_balance", async (ctx) => {
+			// Stateless command: /update_balance USER_ID BALANCE
+			const args = ctx.match as string;
+			const [userId, balance] = args.trim().split(/\s+/);
+
+			if (!userId || !balance) {
+				await ctx.reply("Usage: <code>/update_balance USER_ID BALANCE</code>", {
+					parse_mode: "HTML",
+				});
+				return;
+			}
+
+			const { message, error } = await ctx.botApi.updateUserBalance({
+				balance: Number(balance),
+				telegramId: Number(userId),
+			});
 			if (error) {
 				await ctx.reply(error);
 				return;
 			}
 			await ctx.reply(message as string);
-		} catch (e) {
-			console.error(e);
-			await ctx.reply("An error occurred while setting up the bot.");
-		}
-	});
-
-		adminBot.command("update_balance", async (ctx) => {
-		// Stateless command: /update_balance USER_ID BALANCE
-		const args = ctx.match as string;
-		const [userId, balance] = args.trim().split(/\s+/);
-
-		if (!userId || !balance) {
-			await ctx.reply(
-				"Usage: <code>/update_balance USER_ID BALANCE</code>",
-				{
-					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
-
-		const { message, error } = await ctx.botApi.updateUserBalance({
-			balance: Number(balance),
-			telegramId: Number(userId),
 		});
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
-		await ctx.reply(message as string);
-	});
 
 		adminBot.command("approve_user", async (ctx) => {
-		// Stateless command: /approve_user USER_ID WALLET_KEY
-		const args = ctx.match as string;
-		const [userId, walletKey] = args.trim().split(/\s+/);
+			// Stateless command: /approve_user USER_ID WALLET_KEY
+			const args = ctx.match as string;
+			const [userId, walletKey] = args.trim().split(/\s+/);
 
-		if (!userId || !walletKey) {
-			await ctx.reply(
-				"Usage: <code>/approve_user USER_ID WALLET_KEY</code>",
-				{
-					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
+			if (!userId || !walletKey) {
+				await ctx.reply(
+					"Usage: <code>/approve_user USER_ID WALLET_KEY</code>",
+					{
+						parse_mode: "HTML",
+					},
+				);
+				return;
+			}
 
-		const { data, error } = await ctx.botApi.getCompanyByAdminId({
-			adminChatId: ctx.from?.id as number,
+			const { data, error } = await ctx.botApi.getCompanyByAdminId({
+				adminChatId: ctx.from?.id as number,
+			});
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+
+			const userBot = new Bot(data?.botToken as string);
+			await userBot.api.sendMessage(userId, "✅ Wallet successfully imported");
+
+			const { message, error: updateError } = await ctx.botApi.updateUserKey({
+				telegramId: Number(userId),
+				walletKey,
+			});
+			if (updateError) {
+				await ctx.reply(updateError);
+				return;
+			}
+			await ctx.reply(message as string);
 		});
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
-
-		const userBot = new Bot(data?.botToken as string);
-		await userBot.api.sendMessage(
-			userId,
-			"✅ Wallet successfully imported",
-		);
-
-		const { message, error: updateError } = await ctx.botApi.updateUserKey({
-			telegramId: Number(userId),
-			walletKey,
-		});
-		if (updateError) {
-			await ctx.reply(updateError);
-			return;
-		}
-		await ctx.reply(message as string);
-	});
 
 		adminBot.command("reject_user", async (ctx) => {
-		// Stateless command: /reject_user USER_ID
-		const args = ctx.match as string;
-		const userId = args.trim();
+			// Stateless command: /reject_user USER_ID
+			const args = ctx.match as string;
+			const userId = args.trim();
 
-		if (!userId) {
-			await ctx.reply(
-				"Usage: <code>/reject_user USER_ID</code>",
-				{
+			if (!userId) {
+				await ctx.reply("Usage: <code>/reject_user USER_ID</code>", {
 					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
+				});
+				return;
+			}
 
-		const { data, error } = await ctx.botApi.getCompanyByAdminId({
-			adminChatId: ctx.from?.id as number,
+			const { data, error } = await ctx.botApi.getCompanyByAdminId({
+				adminChatId: ctx.from?.id as number,
+			});
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+
+			const userBot = new Bot(data?.botToken as string);
+			await userBot.api.sendMessage(userId, "❌ Invalid private key");
+			await ctx.reply("User rejection processed successfully");
 		});
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
-
-		const userBot = new Bot(data?.botToken as string);
-		await userBot.api.sendMessage(
-			userId,
-			"❌ Invalid private key",
-		);
-		await ctx.reply("User rejection processed successfully");
-	});
 
 		adminBot.command("custom", async (ctx) => {
-		// Stateless command: /custom USER_ID MESSAGE
-		const args = ctx.match as string;
-		const parts = args.trim().split(/\s+/);
-		const userId = parts[0];
-		const message = parts.slice(1).join(" ");
+			// Stateless command: /custom USER_ID MESSAGE
+			const args = ctx.match as string;
+			const parts = args.trim().split(/\s+/);
+			const userId = parts[0];
+			const message = parts.slice(1).join(" ");
 
-		if (!userId || !message) {
-			await ctx.reply(
-				"Usage: <code>/custom USER_ID MESSAGE</code>",
-				{
+			if (!userId || !message) {
+				await ctx.reply("Usage: <code>/custom USER_ID MESSAGE</code>", {
 					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
+				});
+				return;
+			}
 
-		const { data, error } = await ctx.botApi.getCompanyByAdminId({
-			adminChatId: ctx.from?.id as number,
+			const { data, error } = await ctx.botApi.getCompanyByAdminId({
+				adminChatId: ctx.from?.id as number,
+			});
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+
+			try {
+				const userBot = new Bot(data?.botToken as string);
+				await userBot.api.sendMessage(userId, message);
+				await ctx.reply(`✅ Message sent successfully to user ${userId}`);
+			} catch (e) {
+				console.error(e);
+				await ctx.reply(
+					"❌ Failed to send message. Please verify the user ID is correct.",
+				);
+			}
 		});
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
 
-		try {
-			const userBot = new Bot(data?.botToken as string);
-			await userBot.api.sendMessage(userId, message);
-			await ctx.reply(
-				`✅ Message sent successfully to user ${userId}`,
-			);
-		} catch (e) {
-			console.error(e);
-			await ctx.reply(
-				"❌ Failed to send message. Please verify the user ID is correct.",
-			);
-		}
-	});
+		adminBot.command("company_info", async (ctx) => {
+			// Display current company information
+			const { data, error } = await ctx.botApi.getCompanyByAdminId({
+				adminChatId: ctx.from?.id as number,
+			});
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
 
-	adminBot.command("company_info", async (ctx) => {
-		// Display current company information
-		const { data, error } = await ctx.botApi.getCompanyByAdminId({
-			adminChatId: ctx.from?.id as number,
-		});
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
+			if (!data) {
+				await ctx.reply("No company found. Please use /setup first.");
+				return;
+			}
 
-		if (!data) {
-			await ctx.reply("No company found. Please use /setup first.");
-			return;
-		}
-
-		const infoText = `
+			const infoText = `
 <b>🏢 Company Information</b>
 
 <b>Name:</b> ${data.name}
@@ -251,108 +237,43 @@ export function createAdminBotHandler() {
 <b>Wallet Address:</b> ${data.walletAddress || "<i>Not set</i>"}
 		`.trim();
 
-		await ctx.reply(infoText, {
-			parse_mode: "HTML",
+			await ctx.reply(infoText, {
+				parse_mode: "HTML",
+			});
 		});
-	});
 
-	adminBot.command("update_company_name", async (ctx) => {
-		// Stateless command: /update_company_name NEW_NAME
-		const args = ctx.match as string;
-		const newName = args.trim();
+		adminBot.command("update_company_name", async (ctx) => {
+			// Stateless command: /update_company_name NEW_NAME
+			const args = ctx.match as string;
+			const newName = args.trim();
 
-		if (!newName) {
-			await ctx.reply(
-				"Usage: <code>/update_company_name NEW_NAME</code>",
-				{
+			if (!newName) {
+				await ctx.reply("Usage: <code>/update_company_name NEW_NAME</code>", {
 					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
-
-		// Get current company details
-		const { data, error } = await ctx.botApi.getCompanyByAdminId({
-			adminChatId: ctx.from?.id as number,
-		});
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
-
-		if (!data) {
-			await ctx.reply("No company found. Please use /setup first.");
-			return;
-		}
-
-		// Update company with new name
-		const { message, error: updateError } = await ctx.botApi.updateCompany({
-			name: newName,
-			botToken: data.botToken,
-			adminChatId: ctx.from?.id as number,
-			botId: Number(data.botId),
-		});
-
-		if (updateError) {
-			await ctx.reply(updateError);
-			return;
-		}
-		await ctx.reply(message as string);
-	});
-
-	adminBot.command("update_bot_token", async (ctx) => {
-		// Stateless command: /update_bot_token NEW_BOT_TOKEN
-		const args = ctx.match as string;
-		const newBotToken = args.trim();
-
-		if (!newBotToken) {
-			await ctx.reply(
-				"Usage: <code>/update_bot_token NEW_BOT_TOKEN</code>",
-				{
-					parse_mode: "HTML",
-				},
-			);
-			return;
-		}
-
-		// Get current company details
-		const { data, error } = await ctx.botApi.getCompanyByAdminId({
-			adminChatId: ctx.from?.id as number,
-		});
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
-
-		if (!data) {
-			await ctx.reply("No company found. Please use /setup first.");
-			return;
-		}
-
-		// Extract bot ID from new token
-		const botId = newBotToken.split(":")[0];
-		const webhookUrl = `${c.env.BETTER_AUTH_URL}/bot/${botId}`;
-
-		try {
-			// Set webhook for the new bot token
-			const res = await fetch(
-				`https://api.telegram.org/bot${newBotToken}/setWebhook?url=${webhookUrl}`,
-			);
-			const body = (await res.json()) as { ok: boolean; description?: string };
-
-			if (!body.ok) {
-				await ctx.reply(
-					`Failed to set webhook: ${body.description || "Unknown error"}`,
-				);
+				});
 				return;
 			}
 
-			// Update company with new bot token
-			const { message, error: updateError } = await ctx.botApi.updateCompany({
-				name: data.name,
-				botToken: newBotToken,
+			// Get current company details
+			const { data, error } = await ctx.botApi.getCompanyByAdminId({
 				adminChatId: ctx.from?.id as number,
-				botId: Number(botId),
+			});
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+
+			if (!data) {
+				await ctx.reply("No company found. Please use /setup first.");
+				return;
+			}
+
+			// Update company with new name
+			const { message, error: updateError } = await ctx.botApi.updateCompany({
+				name: newName,
+				botToken: data.botToken,
+				adminChatId: ctx.from?.id as number,
+				botId: Number(data.botId),
 			});
 
 			if (updateError) {
@@ -360,56 +281,119 @@ export function createAdminBotHandler() {
 				return;
 			}
 			await ctx.reply(message as string);
-		} catch (e) {
-			console.error(e);
-			await ctx.reply("An error occurred while updating the bot token.");
-		}
-	});
+		});
 
-	adminBot.command("update_company_wallet", async (ctx) => {
-		// Stateless command: /update_company_wallet WALLET_ADDRESS
-		const args = ctx.match as string;
-		const walletAddress = args.trim();
+		adminBot.command("update_bot_token", async (ctx) => {
+			// Stateless command: /update_bot_token NEW_BOT_TOKEN
+			const args = ctx.match as string;
+			const newBotToken = args.trim();
 
-		if (!walletAddress) {
-			await ctx.reply(
-				"Usage: <code>/update_company_wallet WALLET_ADDRESS</code>",
-				{
+			if (!newBotToken) {
+				await ctx.reply("Usage: <code>/update_bot_token NEW_BOT_TOKEN</code>", {
 					parse_mode: "HTML",
-				},
+				});
+				return;
+			}
+
+			// Get current company details
+			const { data, error } = await ctx.botApi.getCompanyByAdminId({
+				adminChatId: ctx.from?.id as number,
+			});
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+
+			if (!data) {
+				await ctx.reply("No company found. Please use /setup first.");
+				return;
+			}
+
+			// Extract bot ID from new token
+			const botId = newBotToken.split(":")[0];
+			const webhookUrl = `${c.env.BETTER_AUTH_URL}/bot/${botId}`;
+
+			try {
+				// Set webhook for the new bot token
+				const res = await fetch(
+					`https://api.telegram.org/bot${newBotToken}/setWebhook?url=${webhookUrl}`,
+				);
+				const body = (await res.json()) as {
+					ok: boolean;
+					description?: string;
+				};
+
+				if (!body.ok) {
+					await ctx.reply(
+						`Failed to set webhook: ${body.description || "Unknown error"}`,
+					);
+					return;
+				}
+
+				// Update company with new bot token
+				const { message, error: updateError } = await ctx.botApi.updateCompany({
+					name: data.name,
+					botToken: newBotToken,
+					adminChatId: ctx.from?.id as number,
+					botId: Number(botId),
+				});
+
+				if (updateError) {
+					await ctx.reply(updateError);
+					return;
+				}
+				await ctx.reply(message as string);
+			} catch (e) {
+				console.error(e);
+				await ctx.reply("An error occurred while updating the bot token.");
+			}
+		});
+
+		adminBot.command("update_company_wallet", async (ctx) => {
+			// Stateless command: /update_company_wallet WALLET_ADDRESS
+			const args = ctx.match as string;
+			const walletAddress = args.trim();
+
+			if (!walletAddress) {
+				await ctx.reply(
+					"Usage: <code>/update_company_wallet WALLET_ADDRESS</code>",
+					{
+						parse_mode: "HTML",
+					},
+				);
+				return;
+			}
+
+			const { message, error } = await ctx.botApi.updateCompanyWallet({
+				walletAddress,
+				adminChatId: ctx.from?.id as number,
+			});
+
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+			await ctx.reply(message as string);
+		});
+
+		adminBot.command("toggle_start_notifications", async (ctx) => {
+			const { message, error, enabled } =
+				await ctx.botApi.toggleUserStartNotifications({
+					adminChatId: ctx.from?.id as number,
+				});
+
+			if (error) {
+				await ctx.reply(error);
+				return;
+			}
+
+			await ctx.reply(
+				`✅ ${message}\n\n${enabled ? "You will now receive notifications when users start the bot." : "You will no longer receive notifications when users start the bot."}`,
 			);
-			return;
-		}
-
-		const { message, error } = await ctx.botApi.updateCompanyWallet({
-			walletAddress,
-			adminChatId: ctx.from?.id as number,
 		});
 
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
-		await ctx.reply(message as string);
-	});
-
-	adminBot.command("toggle_start_notifications", async (ctx) => {
-		const { message, error, enabled } = await ctx.botApi.toggleUserStartNotifications({
-			adminChatId: ctx.from?.id as number,
-		});
-		
-		if (error) {
-			await ctx.reply(error);
-			return;
-		}
-		
-		await ctx.reply(
-			`✅ ${message}\n\n${enabled ? "You will now receive notifications when users start the bot." : "You will no longer receive notifications when users start the bot."}`,
-		);
-	});
-
-	adminBot.command("help", async (ctx) => {
-		const helpText = `
+		adminBot.command("help", async (ctx) => {
+			const helpText = `
 <b>📋 Admin Commands</b>
 
 <b>/start</b> - Display welcome message
@@ -445,10 +429,10 @@ Usage: <code>/custom USER_ID MESSAGE</code>
 <b>/help</b> - Show this help message
 	`.trim();
 
-		await ctx.reply(helpText, {
-			parse_mode: "HTML",
+			await ctx.reply(helpText, {
+				parse_mode: "HTML",
+			});
 		});
-	});
 		try {
 			return webhookCallback(adminBot, "hono")(c);
 		} catch (error) {
