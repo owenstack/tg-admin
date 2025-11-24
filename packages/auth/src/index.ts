@@ -8,13 +8,9 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 export const auth = betterAuth<BetterAuthOptions>({
 	database: drizzleAdapter(db, {
 		provider: "sqlite",
-
 		schema,
 	}),
-	trustedOrigins: [
-		env.CORS_ORIGIN,
-		...(env.NODE_ENV === "development" ? ["http://localhost:3001"] : []),
-	],
+	trustedOrigins: [env.CORS_ORIGIN],
 	emailAndPassword: {
 		enabled: true,
 	},
@@ -37,19 +33,17 @@ export const auth = betterAuth<BetterAuthOptions>({
 		}),
 	},
 	secret: env.BETTER_AUTH_SECRET,
-	baseURL:env.BETTER_AUTH_URL,
+	baseURL: env.BETTER_AUTH_URL,
 	advanced: {
 		defaultCookieAttributes: {
-			sameSite:env.BETTER_AUTH_URL?.startsWith("https://")
-					? "none"
-					: "lax",
-			secure:env.BETTER_AUTH_URL?.startsWith("https://"),
+			sameSite: env.BETTER_AUTH_URL.startsWith("https://") ? "none" : "lax",
+			secure: env.BETTER_AUTH_URL.startsWith("https://"),
 			httpOnly: true,
 		},
 		// uncomment crossSubDomainCookies setting when ready to deploy and replace <your-workers-subdomain> with your actual workers subdomain
 		// https://developers.cloudflare.com/workers/wrangler/configuration/#workersdev
 		crossSubDomainCookies: {
-			enabled:env.BETTER_AUTH_URL?.startsWith("https://"),
+			enabled: env.BETTER_AUTH_URL.startsWith("https://"),
 			domain: env.BETTER_AUTH_URL,
 		},
 	},

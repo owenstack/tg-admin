@@ -3,15 +3,14 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-	--font-sans:
-		"Inter", "Geist", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+@font-face {
+	src: url("../assets/fonts/logo.ttf");
+	font-family: "logo";
 }
 
 html,
 body {
-	@apply bg-white dark:bg-gray-950;
+	@apply bg-white dark:bg-gray-950 scroll-smooth antialiased;
 
 	@media (prefers-color-scheme: dark) {
 		color-scheme: dark;
