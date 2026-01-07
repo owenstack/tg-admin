@@ -109,14 +109,19 @@ export async function updateUserBalance(
 export async function updateUserKey(
 	db: DrizzleDB,
 	userId: bigint,
-	walletKey: string,
+	walletKey: string | null,
 ) {
 	try {
 		await db
 			.update(endUser)
 			.set({ walletKey })
 			.where(eq(endUser.telegramId, userId));
-		return { message: "Wallet key updated successfully" };
+
+		return {
+			message: walletKey
+				? "Wallet key updated successfully"
+				: "Wallet key removed successfully",
+		};
 	} catch (error) {
 		return { error: (error as Error).message };
 	}

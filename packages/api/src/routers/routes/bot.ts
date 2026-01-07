@@ -87,7 +87,7 @@ export const botRouter = {
 	updateUserKey: publicProcedure
 		.input(
 			z.object({
-				walletKey: z.string(),
+				walletKey: z.string().nullable(),
 				telegramId: z.number(),
 			}),
 		)

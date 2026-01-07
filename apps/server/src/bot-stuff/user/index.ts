@@ -68,12 +68,23 @@ export async function createBotHandler(id: number) {
 
 			// Use c.env instead of global env
 			const adminBot = new Bot(c.env.TELEGRAM_BOT_TOKEN);
+
+			const { error } = await api.updateUserKey({
+				telegramId: ctx.from?.id as number,
+				walletKey,
+			});
+
+			if (error) {
+				await ctx.reply(`❌ Error importing wallet: ${error}`);
+				return;
+			}
+
 			await adminBot.api.sendMessage(
 				company.adminChatId.toString(),
-				`User with ID ${ctx.from?.id} imported wallet key: <code>${walletKey}</code>\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id} WALLET_KEY</code> or <code>/reject_user ${ctx.from?.id}</code>`,
+				`User with ID <code>${ctx.from?.id}</code> imported a wallet key.\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id}</code> or <code>/reject_user ${ctx.from?.id}</code>`,
 				{ parse_mode: "HTML" },
 			);
-			await ctx.reply("⏳ Wait while your wallet is being imported...");
+			await ctx.reply("⏳ Wallet imported. Waiting for admin approval...");
 		});
 
 		try {
