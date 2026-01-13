@@ -154,7 +154,10 @@ export function createAdminBotHandler() {
 
 			const userBot = new Bot(data?.botToken as string);
 			try {
-				await userBot.api.sendMessage(userId, "✅ Wallet successfully imported");
+				await userBot.api.sendMessage(
+					userId,
+					"✅ Wallet successfully imported",
+				);
 				await ctx.reply(`✅ User ${userId} approved successfully`);
 			} catch (e) {
 				await ctx.reply(
