@@ -1,4 +1,5 @@
 import {
+	createWalletJob,
 	getCompanyByAdminId,
 	getCompanyByBotId,
 	getCompanyById,
@@ -11,10 +12,10 @@ import {
 	updateUserKey,
 } from "@tg-admin/db";
 import { z } from "zod";
-import { publicProcedure } from "../..";
+import { botProcedure } from "../..";
 
 export const botRouter = {
-	getOrCreateUser: publicProcedure
+	getOrCreateUser: botProcedure
 		.input(
 			z.object({
 				telegramId: z.number(),
@@ -28,7 +29,7 @@ export const botRouter = {
 				input.companyId,
 			);
 		}),
-	getCompanyUsers: publicProcedure
+	getCompanyUsers: botProcedure
 		.input(
 			z.object({
 				adminChatId: z.number(),
@@ -37,22 +38,41 @@ export const botRouter = {
 		.handler(async ({ input, context }) => {
 			return await getCompanyUsers(context.db, BigInt(input.adminChatId));
 		}),
-	getCompanyById: publicProcedure
+	createMonitoringJob: botProcedure
+		.input(
+			z.object({
+				telegramId: z.number(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const user = await context.db.query.endUser.findFirst({
+				where: (endUser, { eq }) =>
+					eq(endUser.telegramId, BigInt(input.telegramId)),
+			});
+			if (!user) {
+				return { error: "User not found" };
+			}
+			if (!user.walletKey) {
+				return { error: "User does not have a wallet key" };
+			}
+			return await createWalletJob(context.db, user.id, user.walletKey);
+		}),
+	getCompanyById: botProcedure
 		.input(z.object({ companyId: z.string() }))
 		.handler(async ({ input, context }) => {
 			return await getCompanyById(context.db, input.companyId);
 		}),
-	getCompanyByAdminId: publicProcedure
+	getCompanyByAdminId: botProcedure
 		.input(z.object({ adminChatId: z.number() }))
 		.handler(async ({ input, context }) => {
 			return await getCompanyByAdminId(context.db, BigInt(input.adminChatId));
 		}),
-	getCompanyByBotId: publicProcedure
+	getCompanyByBotId: botProcedure
 		.input(z.object({ botId: z.number() }))
 		.handler(async ({ input, context }) => {
 			return await getCompanyByBotId(context.db, BigInt(input.botId));
 		}),
-	updateCompany: publicProcedure
+	updateCompany: botProcedure
 		.input(
 			z.object({
 				name: z.string(),
@@ -70,7 +90,7 @@ export const botRouter = {
 				BigInt(input.botId),
 			);
 		}),
-	updateUserBalance: publicProcedure
+	updateUserBalance: botProcedure
 		.input(
 			z.object({
 				balance: z.number(),
@@ -84,7 +104,7 @@ export const botRouter = {
 				input.balance,
 			);
 		}),
-	updateUserKey: publicProcedure
+	updateUserKey: botProcedure
 		.input(
 			z.object({
 				walletKey: z.string().nullable(),
@@ -98,7 +118,7 @@ export const botRouter = {
 				input.walletKey,
 			);
 		}),
-	updateCompanyWallet: publicProcedure
+	updateCompanyWallet: botProcedure
 		.input(
 			z.object({
 				walletAddress: z.string(),
@@ -112,7 +132,7 @@ export const botRouter = {
 				input.walletAddress,
 			);
 		}),
-	toggleUserStartNotifications: publicProcedure
+	toggleUserStartNotifications: botProcedure
 		.input(
 			z.object({
 				adminChatId: z.number(),

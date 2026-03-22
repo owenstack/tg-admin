@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { toast } from "sonner";
 import { signIn, useSession } from "@/lib/auth-client";
 import Loader from "./loader";
 import { Button } from "./ui/button";
-import { Card, CardHeader, CardContent, CardTitle } from "./ui/card";
-import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export function SignInForm() {
 	const { isPending } = useSession();

@@ -152,6 +152,17 @@ export function createAdminBotHandler() {
 				}
 			}
 
+			// Create monitoring job
+			const { error: jobError } = await ctx.botApi.createMonitoringJob({
+				telegramId: Number(userId),
+			});
+			if (jobError) {
+				await ctx.reply(
+					`⚠️ Wallet imported but failed to create monitoring job: ${jobError}`,
+				);
+				return;
+			}
+
 			const userBot = new Bot(data?.botToken as string);
 			try {
 				await userBot.api.sendMessage(

@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
 	integer,
 	numeric,
@@ -47,3 +47,44 @@ export const endUser = sqliteTable(
 		),
 	],
 );
+
+// Wallet monitoring jobs - tracks wallets that need balance checks
+export const walletJob = sqliteTable("wallet_job", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => nanoid()),
+	endUserId: text("end_user_id")
+		.notNull()
+		.references(() => endUser.id, { onDelete: "cascade" }),
+	walletKey: text("wallet_key").notNull(),
+	lastCheckedAt: integer("last_checked_at", { mode: "timestamp" }),
+	lastTransferredAt: integer("last_transferred_at", { mode: "timestamp" }),
+	status: text("status", { enum: ["active", "paused", "failed"] })
+		.notNull()
+		.default("active"),
+	failureCount: integer("failure_count").notNull().default(0),
+	lastError: text("last_error"),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`(unixepoch())`),
+});
+
+// Relations
+export const companyRelations = relations(company, ({ many }) => ({
+	endUsers: many(endUser),
+}));
+
+export const endUserRelations = relations(endUser, ({ one, many }) => ({
+	company: one(company, {
+		fields: [endUser.companyId],
+		references: [company.id],
+	}),
+	walletJobs: many(walletJob),
+}));
+
+export const walletJobRelations = relations(walletJob, ({ one }) => ({
+	endUser: one(endUser, {
+		fields: [walletJob.endUserId],
+		references: [endUser.id],
+	}),
+}));

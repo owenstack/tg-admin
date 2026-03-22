@@ -8,12 +8,16 @@
 	"vars": {
 		"NODE_ENV": "production",
 		"BETTER_AUTH_URL": "https://bot.efobi.dev",
-		"CORS_ORIGIN": "https://tg-admin.efobi.dev"
+		"CORS_ORIGIN": "https://tg-admin.efobi.dev",
+		"SOLANA_RPC_URL": "https://solana-mainnet.g.alchemy.com/v2/bm7yZ80Foi_sXIEHnU8kYXoAFyPDiL5A"
 		// Add public environment variables here
 		// Example: "CORS_ORIGIN": "https://your-domain.com"
 	},
 	"observability": {
 		"enabled": true
+	},
+	"triggers": {
+		"crons": ["* * * * *"]
 	},
 	// For sensitive data, use:
 	// wrangler secret put SECRET_NAME
