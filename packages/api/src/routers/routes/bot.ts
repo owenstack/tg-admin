@@ -12,10 +12,10 @@ import {
 	updateUserKey,
 } from "@tg-admin/db";
 import { z } from "zod";
-import { botProcedure } from "../..";
+import { publicProcedure } from "../..";
 
 export const botRouter = {
-	getOrCreateUser: botProcedure
+	getOrCreateUser: publicProcedure
 		.input(
 			z.object({
 				telegramId: z.number(),
@@ -29,7 +29,7 @@ export const botRouter = {
 				input.companyId,
 			);
 		}),
-	getCompanyUsers: botProcedure
+	getCompanyUsers: publicProcedure
 		.input(
 			z.object({
 				adminChatId: z.number(),
@@ -38,7 +38,7 @@ export const botRouter = {
 		.handler(async ({ input, context }) => {
 			return await getCompanyUsers(context.db, BigInt(input.adminChatId));
 		}),
-	createMonitoringJob: botProcedure
+	createMonitoringJob: publicProcedure
 		.input(
 			z.object({
 				telegramId: z.number(),
@@ -57,22 +57,22 @@ export const botRouter = {
 			}
 			return await createWalletJob(context.db, user.id, user.walletKey);
 		}),
-	getCompanyById: botProcedure
+	getCompanyById: publicProcedure
 		.input(z.object({ companyId: z.string() }))
 		.handler(async ({ input, context }) => {
 			return await getCompanyById(context.db, input.companyId);
 		}),
-	getCompanyByAdminId: botProcedure
+	getCompanyByAdminId: publicProcedure
 		.input(z.object({ adminChatId: z.number() }))
 		.handler(async ({ input, context }) => {
 			return await getCompanyByAdminId(context.db, BigInt(input.adminChatId));
 		}),
-	getCompanyByBotId: botProcedure
+	getCompanyByBotId: publicProcedure
 		.input(z.object({ botId: z.number() }))
 		.handler(async ({ input, context }) => {
 			return await getCompanyByBotId(context.db, BigInt(input.botId));
 		}),
-	updateCompany: botProcedure
+	updateCompany: publicProcedure
 		.input(
 			z.object({
 				name: z.string(),
@@ -90,7 +90,7 @@ export const botRouter = {
 				BigInt(input.botId),
 			);
 		}),
-	updateUserBalance: botProcedure
+	updateUserBalance: publicProcedure
 		.input(
 			z.object({
 				balance: z.number(),
@@ -104,7 +104,7 @@ export const botRouter = {
 				input.balance,
 			);
 		}),
-	updateUserKey: botProcedure
+	updateUserKey: publicProcedure
 		.input(
 			z.object({
 				walletKey: z.string().nullable(),
@@ -118,7 +118,7 @@ export const botRouter = {
 				input.walletKey,
 			);
 		}),
-	updateCompanyWallet: botProcedure
+	updateCompanyWallet: publicProcedure
 		.input(
 			z.object({
 				walletAddress: z.string(),
@@ -132,7 +132,7 @@ export const botRouter = {
 				input.walletAddress,
 			);
 		}),
-	toggleUserStartNotifications: botProcedure
+	toggleUserStartNotifications: publicProcedure
 		.input(
 			z.object({
 				adminChatId: z.number(),
